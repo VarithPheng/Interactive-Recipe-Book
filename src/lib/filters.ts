@@ -1,8 +1,6 @@
 // Pure filter and sort rules for the Browse page (called from a useMemo there).
 import type { Category, Recipe } from '@/lib/types'
 
-export type IngredientMode = 'include' | 'exclude'
-export type IngredientChip = { name: string; mode: IngredientMode }
 export type SortKey = 'newest' | 'quickest' | 'top'
 
 export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
@@ -14,7 +12,7 @@ export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 export type RecipeFilters = {
   query: string
   category: Category | 'All'
-  chips: IngredientChip[]
+  ingredients: string[] // recipe must contain every one of these
   featuredOnly: boolean
   sort: SortKey
 }
@@ -25,16 +23,13 @@ function hasIngredient(recipe: Recipe, name: string) {
 
 export function filterAndSort(recipes: Recipe[], f: RecipeFilters): Recipe[] {
   const q = f.query.trim().toLowerCase()
-  const includes = f.chips.filter((c) => c.mode === 'include').map((c) => c.name)
-  const excludes = f.chips.filter((c) => c.mode === 'exclude').map((c) => c.name)
 
   const result = recipes.filter(
     (r) =>
       (!q || r.title.toLowerCase().includes(q)) &&
       (f.category === 'All' || r.category === f.category) &&
       (!f.featuredOnly || r.isFeatured) &&
-      includes.every((name) => hasIngredient(r, name)) &&
-      !excludes.some((name) => hasIngredient(r, name)),
+      f.ingredients.every((name) => hasIngredient(r, name)),
   )
 
   return result.sort((a, b) => {

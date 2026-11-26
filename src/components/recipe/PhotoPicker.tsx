@@ -39,7 +39,7 @@ export function PhotoPicker({ imageUrl, processing, error, onSelect, onRemove }:
 
       {imageUrl ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <img src={imageUrl} alt="Selected recipe photo" className="aspect-[4/3] w-full max-w-xs rounded-lg bg-muted object-cover" />
+          <img src={imageUrl} alt="Selected recipe photo" className="aspect-[4/3] w-full sm:max-w-xs rounded-lg bg-muted object-cover" />
           <div className="flex gap-2">
             <Button type="button" variant="outline" disabled={processing} onClick={() => inputRef.current?.click()}>
               Change photo
@@ -54,7 +54,7 @@ export function PhotoPicker({ imageUrl, processing, error, onSelect, onRemove }:
           type="button"
           disabled={processing}
           onClick={() => inputRef.current?.click()}
-          className="flex aspect-[4/3] w-full max-w-xs flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-input text-sm text-muted-foreground outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+          className="flex aspect-[4/3] w-full sm:max-w-xs flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-input text-sm text-muted-foreground outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
         >
           <ImageIcon className="size-6" aria-hidden="true" />
           {processing ? 'Preparing photo…' : 'Choose a photo'}

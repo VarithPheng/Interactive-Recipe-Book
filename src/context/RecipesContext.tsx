@@ -1,11 +1,14 @@
 // RecipesContext: owns the recipe list loaded from Supabase, plus its loading/error status.
 // A useReducer holds { items, status, error }; an effect fetches on mount and on reload().
-// create/update wait for the server; remove is optimistic and rolls back on failure.
-// Ratings (rate) are added in milestone 6.
+// create/update wait for the server; remove and rate are optimistic and roll back on failure.
+// This device's own scores are kept in localStorage so its stars show after a refresh.
 import { createContext, useCallback, useContext, useEffect, useReducer, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
-import { createRecipe, deleteRecipe, fetchRecipes, updateRecipe } from '@/api/recipes'
+import { rateRecipe } from '@/api/ratings'
+import { createRecipe, deleteRecipe, fetchRecipe, fetchRecipes, updateRecipe } from '@/api/recipes'
 import { useFavorites } from '@/context/FavoritesContext'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { getDeviceId } from '@/lib/device'
 import type { Recipe, RecipeInput } from '@/lib/types'
 
 type Status = 'loading' | 'success' | 'error'
@@ -23,6 +26,7 @@ type Action =
   | { type: 'added'; recipe: Recipe }
   | { type: 'updated'; recipe: Recipe }
   | { type: 'removed'; id: string }
+  | { type: 'rated'; id: string; avgRating: number; ratingCount: number }
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -38,6 +42,13 @@ function reducer(state: State, action: Action): State {
       return { ...state, items: state.items.map((r) => (r.id === action.recipe.id ? action.recipe : r)) }
     case 'removed':
       return { ...state, items: state.items.filter((r) => r.id !== action.id) }
+    case 'rated':
+      return {
+        ...state,
+        items: state.items.map((r) =>
+          r.id === action.id ? { ...r, avgRating: action.avgRating, ratingCount: action.ratingCount } : r,
+        ),
+      }
   }
 }
 
@@ -47,6 +58,8 @@ type RecipesValue = State & {
   create: (input: RecipeInput) => Promise<Recipe | null>
   update: (id: string, input: RecipeInput) => Promise<Recipe | null>
   remove: (id: string) => Promise<boolean>
+  rate: (id: string, score: number) => Promise<void>
+  myRating: (id: string) => number | undefined
 }
 
 const RecipesContext = createContext<RecipesValue | null>(null)
@@ -59,6 +72,7 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { items: [], status: 'loading', error: null })
   const [reloadKey, setReloadKey] = useState(0)
   const { prune } = useFavorites()
+  const [myRatings, setMyRatings] = useLocalStorage<Record<string, number>>('recipebook:my-ratings:v1', {})
 
   // Fetch all recipes on mount and whenever reload() bumps reloadKey.
   useEffect(() => {
@@ -125,8 +139,44 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
     [state.items],
   )
 
+  const myRating = useCallback((id: string) => myRatings[id], [myRatings])
+
+  const rate = useCallback(
+    async (id: string, score: number) => {
+      const recipe = state.items.find((r) => r.id === id)
+      if (!recipe) return
+      const previousScore = myRatings[id]
+
+      // Optimistic average: replace this device's old score, or add a new one.
+      const total = recipe.avgRating * recipe.ratingCount - (previousScore ?? 0) + score
+      const count = recipe.ratingCount + (previousScore ? 0 : 1)
+      dispatch({ type: 'rated', id, avgRating: total / count, ratingCount: count })
+      setMyRatings((m) => ({ ...m, [id]: score }))
+
+      try {
+        await rateRecipe(id, getDeviceId(), score)
+      } catch (err) {
+        dispatch({ type: 'rated', id, avgRating: recipe.avgRating, ratingCount: recipe.ratingCount })
+        setMyRatings((m) => {
+          const next = { ...m }
+          if (previousScore) next[id] = previousScore
+          else delete next[id]
+          return next
+        })
+        toast.error(`Could not save your rating. ${message(err)}`)
+        return
+      }
+      toast.success(previousScore ? 'Rating updated' : 'Thanks for rating')
+      // Re-read the row so the average matches the server; keep the local value if this fails.
+      fetchRecipe(id)
+        .then((fresh) => dispatch({ type: 'updated', recipe: fresh }))
+        .catch(() => {})
+    },
+    [state.items, myRatings, setMyRatings],
+  )
+
   return (
-    <RecipesContext.Provider value={{ ...state, reload, getRecipe, create, update, remove }}>
+    <RecipesContext.Provider value={{ ...state, reload, getRecipe, create, update, remove, rate, myRating }}>
       {children}
     </RecipesContext.Provider>
   )

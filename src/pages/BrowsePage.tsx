@@ -6,7 +6,7 @@ import { LoadError } from '@/components/recipe/LoadError'
 import { RecipeGrid, RecipeGridSkeleton } from '@/components/recipe/RecipeGrid'
 import { useRecipes } from '@/context/RecipesContext'
 import { useDebounce } from '@/hooks/useDebounce'
-import { filterAndSort, type IngredientChip, type SortKey } from '@/lib/filters'
+import { filterAndSort, type SortKey } from '@/lib/filters'
 import type { Category } from '@/lib/types'
 
 export function BrowsePage() {
@@ -14,7 +14,7 @@ export function BrowsePage() {
 
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<Category | 'All'>('All')
-  const [chips, setChips] = useState<IngredientChip[]>([])
+  const [ingredients, setIngredients] = useState<string[]>([])
   const [featuredOnly, setFeaturedOnly] = useState(false)
   const [sort, setSort] = useState<SortKey>('newest')
   const debouncedQuery = useDebounce(query, 300)
@@ -24,8 +24,8 @@ export function BrowsePage() {
   }, [])
 
   const visible = useMemo(
-    () => filterAndSort(items, { query: debouncedQuery, category, chips, featuredOnly, sort }),
-    [items, debouncedQuery, category, chips, featuredOnly, sort],
+    () => filterAndSort(items, { query: debouncedQuery, category, ingredients, featuredOnly, sort }),
+    [items, debouncedQuery, category, ingredients, featuredOnly, sort],
   )
 
   // Every distinct ingredient across all recipes, for the ingredient picker.
@@ -34,12 +34,12 @@ export function BrowsePage() {
     [items],
   )
 
-  const filtersActive = query !== '' || category !== 'All' || chips.length > 0 || featuredOnly
+  const filtersActive = query !== '' || category !== 'All' || ingredients.length > 0 || featuredOnly
 
   function clearFilters() {
     setQuery('')
     setCategory('All')
-    setChips([])
+    setIngredients([])
     setFeaturedOnly(false)
   }
 
@@ -58,8 +58,8 @@ export function BrowsePage() {
           featuredOnly={featuredOnly}
           onFeaturedOnlyChange={setFeaturedOnly}
           ingredientOptions={ingredientOptions}
-          chips={chips}
-          onChipsChange={setChips}
+          ingredients={ingredients}
+          onIngredientsChange={setIngredients}
         />
       </div>
 

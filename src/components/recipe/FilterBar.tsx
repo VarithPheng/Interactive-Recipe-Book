@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { IngredientChips } from './IngredientChips'
-import { SORT_OPTIONS, type IngredientChip, type SortKey } from '@/lib/filters'
+import { SORT_OPTIONS, type SortKey } from '@/lib/filters'
 import { CATEGORIES, type Category } from '@/lib/types'
 
 type Props = {
@@ -17,8 +17,8 @@ type Props = {
   featuredOnly: boolean
   onFeaturedOnlyChange: (v: boolean) => void
   ingredientOptions: string[]
-  chips: IngredientChip[]
-  onChipsChange: (chips: IngredientChip[]) => void
+  ingredients: string[]
+  onIngredientsChange: (names: string[]) => void
 }
 
 export function FilterBar(p: Props) {
@@ -77,7 +77,7 @@ export function FilterBar(p: Props) {
         </Button>
       </div>
 
-      <IngredientChips options={p.ingredientOptions} chips={p.chips} onChange={p.onChipsChange} />
+      <IngredientChips options={p.ingredientOptions} selected={p.ingredients} onChange={p.onIngredientsChange} />
     </div>
   )
 }

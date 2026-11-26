@@ -1,5 +1,5 @@
 // One recipe: photo, ingredients scaled by servings, steps, favorite and share.
-// Own recipes get edit/delete; protected ones show only the lock badge. Ratings arrive in milestone 6.
+// Own recipes get edit/delete; protected ones show only the lock badge. Anyone can rate once per device.
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeftIcon, ClockIcon } from 'lucide-react'
@@ -13,6 +13,7 @@ import { RecipeBadges } from '@/components/recipe/RecipeBadges'
 import { RecipePhoto } from '@/components/recipe/RecipePhoto'
 import { ServingsScaler } from '@/components/recipe/ServingsScaler'
 import { ShareButton } from '@/components/recipe/ShareButton'
+import { StarRating } from '@/components/recipe/StarRating'
 import { useRecipes } from '@/context/RecipesContext'
 import { formatAmount, formatMinutes } from '@/lib/format'
 import type { Recipe } from '@/lib/types'
@@ -45,6 +46,7 @@ export function RecipeDetailPage() {
 }
 
 function RecipeDetail({ recipe }: { recipe: Recipe }) {
+  const { rate, myRating } = useRecipes()
   const baseServings = recipe.servings ?? 1
   const [servings, setServings] = useState(baseServings)
   const factor = servings / baseServings
@@ -78,6 +80,10 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
             <ShareButton />
           </div>
           {recipe.canDelete && <RecipeActions recipe={recipe} />}
+          <section aria-labelledby="rate-heading" className="border-t border-border pt-4">
+            <h2 id="rate-heading" className="text-sm font-medium">Rate this recipe</h2>
+            <StarRating value={myRating(recipe.id)} onRate={(score) => rate(recipe.id, score)} />
+          </section>
         </div>
       </div>
 

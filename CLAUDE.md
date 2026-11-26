@@ -65,7 +65,7 @@ All pages render inside a `Layout` (navbar with links, mobile menu, `<Outlet/>`)
 | F1 | Seeded recipe grid | Browse | 6 seeded recipes appear on first load |
 | F2 | Debounced title search | Browse | Typing filters after ~300 ms (`useDebounce`) |
 | F3 | Category filter | Browse | Chips/select for the 7 categories plus "All" |
-| F4 | Ingredient include/exclude filter | Browse | Add ingredient chips; each chip toggles "must include" or "must exclude"; matching uses `ingredientNames` |
+| F4 | Ingredient filter | Browse | Pick ingredients from a dropdown of all recipe ingredients; each becomes a removable chip; recipe must contain every chip (exclude mode removed by user decision); matching uses `ingredientNames` |
 | F5 | Sort | Browse | Newest, quickest (prep time), top rated |
 | F6 | Staff pick badge and filter | Browse | Badge on featured cards; toggle to show only featured |
 | F7 | Recipe detail and servings scaler | Detail | Quantities scale with servings; quantities rounded to 2 decimals |
@@ -255,7 +255,7 @@ Providers wrap the app in `main.tsx` in this order: `FavoritesProvider`, `Recipe
 
 - Search matches the lowercase title containing the debounced query.
 - Category: exact match, or all.
-- Ingredient chips: each chip is `include` or `exclude`. A recipe passes only if every include name matches some entry in `ingredientNames` (substring match, case-insensitive) and no exclude name matches.
+- Ingredient chips: include only. A recipe passes only if every chip name matches some entry in `ingredientNames` (substring match, case-insensitive).
 - Featured toggle: only `isFeatured`.
 - Sort: newest (`createdAt` desc), quickest (`prepMinutes` asc, nulls last), top rated (`avgRating` desc, then `ratingCount` desc).
 - Compute the final list with `useMemo`. Keep filter state in the Browse page with `useState`; do not put it in a context.
