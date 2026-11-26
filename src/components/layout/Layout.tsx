@@ -1,5 +1,6 @@
-// App shell: navbar on top, the current page below.
+// App shell: navbar on top, the current page below, and the toast container.
 import { Outlet } from 'react-router-dom'
+import { Toaster } from '@/components/ui/sonner'
 import { Navbar } from './Navbar'
 
 export function Layout() {
@@ -15,6 +16,7 @@ export function Layout() {
       <main id="main" className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <Outlet />
       </main>
+      <Toaster theme="light" position="bottom-center" />
     </div>
   )
 }

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 const LINKS = [
   { to: '/', label: 'Recipes', end: true },
   { to: '/favorites', label: 'Favorites', end: false },
-  { to: '/settings', label: 'Settings', end: false },
+  { to: '/about', label: 'About', end: false },
 ]
 
 function linkClass({ isActive }: { isActive: boolean }) {
@@ -35,7 +35,6 @@ export function Navbar() {
               {l.label}
             </NavLink>
           ))}
-          {/* TODO(milestone 2): theme toggle wired to SettingsContext */}
           <Button asChild className="ml-2">
             <Link to="/recipes/new">
               <PlusIcon aria-hidden="true" />

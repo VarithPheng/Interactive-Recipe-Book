@@ -5,7 +5,7 @@ import { BrowsePage } from '@/pages/BrowsePage'
 import { RecipeDetailPage } from '@/pages/RecipeDetailPage'
 import { RecipeFormPage } from '@/pages/RecipeFormPage'
 import { FavoritesPage } from '@/pages/FavoritesPage'
-import { SettingsPage } from '@/pages/SettingsPage'
+import { AboutPage } from '@/pages/AboutPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 export function App() {
@@ -17,7 +17,7 @@ export function App() {
         <Route path="recipes/:id" element={<RecipeDetailPage />} />
         <Route path="recipes/:id/edit" element={<RecipeFormPage />} />
         <Route path="favorites" element={<FavoritesPage />} />
-        <Route path="settings" element={<SettingsPage />} />
+        <Route path="about" element={<AboutPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

@@ -4,6 +4,7 @@
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/source-serif-4";
 
+/* Light theme only. Keeping this class-based variant means shadcn's dark: styles never apply. */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -82,40 +83,6 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-    --background: #141613;
-    --foreground: #e9ece6;
-    --card: #1c1f1b;
-    --card-foreground: #e9ece6;
-    --popover: #1c1f1b;
-    --popover-foreground: #e9ece6;
-    --primary: #8fbf98;
-    --primary-foreground: #142017;
-    --secondary: #262a25;
-    --secondary-foreground: #e9ece6;
-    --muted: #262a25;
-    --muted-foreground: #a3a99f;
-    --accent: #262a25;
-    --accent-foreground: #e9ece6;
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: #2e332d;
-    --input: #3a4038;
-    --ring: #8fbf98;
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {

@@ -6,9 +6,9 @@ A public recipe book in React for a university frontend final project. Read this
 
 - Build in the milestones listed under "Build order". After each milestone run `bunx tsc --noEmit` and `bun run build`, and fix errors before moving on.
 - Ask the user for credentials (Supabase URL/anon key, R2 keys). Never invent values and never commit secrets. Leave `// TODO(user):` comments for steps that need the user's accounts.
-- Keep shared files stable: `src/App.tsx` routes, `src/lib/types.ts`, and the three context files. Change them deliberately and tell the user.
+- Keep shared files stable: `src/App.tsx` routes, `src/lib/types.ts`, and the two context files. Change them deliberately and tell the user.
 - The grader scores React concepts, so keep `useState`, `useEffect`, Context and custom hooks visible and commented. Do not hide them behind libraries.
-- Do NOT add: authentication, Zod, a Pantry Finder page, a client-side data cache layer, a units (metric/imperial) toggle, TanStack Query, or Redux.
+- Do NOT add: dark mode or a theme toggle (light theme only), authentication, Zod, a Pantry Finder page, a client-side data cache layer, a units (metric/imperial) toggle, TanStack Query, or Redux.
 
 ## Goal and grading
 
@@ -53,10 +53,10 @@ Course project, 100 points. Requirements:
 | `/recipes/:id` | `RecipeDetailPage` | Photo, ingredients with servings scaler, steps, rating, favorite, share, edit/delete |
 | `/recipes/new` and `/recipes/:id/edit` | `RecipeFormPage` | One form component, create and edit modes |
 | `/favorites` | `FavoritesPage` | Recipes favorited on this device |
-| `/settings` | `SettingsPage` | Theme toggle, About: project info, team, repo link |
+| `/about` | `AboutPage` | Project info, team, repo link |
 | `*` | `NotFoundPage` | Not-found state |
 
-All pages render inside a `Layout` (navbar with links, theme toggle, mobile menu, `<Outlet/>`). Set `document.title` per page in a `useEffect`.
+All pages render inside a `Layout` (navbar with links, mobile menu, `<Outlet/>`). Set `document.title` per page in a `useEffect`.
 
 ## Feature checklist (acceptance criteria)
 
@@ -76,7 +76,7 @@ All pages render inside a `Layout` (navbar with links, theme toggle, mobile menu
 | F12 | Favorite toggle and page | Detail, Favorites | Heart toggle on cards and detail; persists across refresh |
 | F13 | Ratings | Detail, Browse | Click 1-5 stars; average and count shown on cards; own rating remembered |
 | F14 | Share link | Detail | Copy button puts the full detail URL on the clipboard, toast confirms |
-| F15 | Dark mode | Settings | Toggle persists; respects system preference on first visit |
+| F15 | ~~Dark mode~~ | n/a | Removed by user decision (light theme only). Numbering kept so other IDs stay stable. |
 | F16 | Responsive layout | All | Usable at 375, 768 and 1280 px; grid is 1/2/3/4 columns |
 | F17 | Loading, error and empty states, toasts | All | Skeletons while loading, error with retry, friendly empty states |
 
@@ -197,7 +197,7 @@ Insert 6 realistic recipes with `can_delete = false` and `is_featured = true` on
 
 ## Data access (`src/api/`)
 
-- `src/lib/supabase.ts` creates the client from `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+- `src/lib/supabase.ts` creates the client from `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
 - `src/api/recipes.ts`:
   - `fetchRecipes()`: `from('recipes_with_rating').select('*').order('created_at', { ascending: false })`, mapped from snake_case to the `Recipe` type by a single `mapRow` function.
   - `createRecipe(input)`: insert into `recipes` (never the view), computing `ingredient_names`, then `.select().single()` and re-read the row from the view by id.
@@ -228,7 +228,7 @@ Server (`api/upload.ts`, Vercel function, Node runtime):
 
 ## State and hooks
 
-Providers wrap the app in `main.tsx` in this order: `SettingsProvider`, `FavoritesProvider`, `RecipesProvider`, router. Each context file exports a provider and a consumer hook (`useRecipes`, `useFavorites`, `useSettings`) that throws a clear error if used outside its provider. Add a short comment block at the top of each provider explaining what state it owns and why.
+Providers wrap the app in `main.tsx` in this order: `FavoritesProvider`, `RecipesProvider`, router. Each context file exports a provider and a consumer hook (`useRecipes`, `useFavorites`) that throws a clear error if used outside its provider. Add a short comment block at the top of each provider explaining what state it owns and why.
 
 **`RecipesContext`** (`useReducer`)
 
@@ -242,11 +242,6 @@ Providers wrap the app in `main.tsx` in this order: `SettingsProvider`, `Favorit
 - Array of recipe ids via `useLocalStorage('recipebook:favorites:v1', [])` with `toggle(id)` and `isFavorite(id)`.
 - When recipes finish loading, prune ids that no longer exist.
 - A `useEffect` listens for the window `storage` event so other tabs stay in sync.
-
-**`SettingsContext`**
-
-- `theme: 'light' | 'dark'` via `useLocalStorage('recipebook:theme:v1')`, defaulting to the system preference on first visit.
-- A `useEffect` toggles the `dark` class on `document.documentElement`.
 
 **Custom hooks (`src/hooks/`)**
 
@@ -269,7 +264,7 @@ Providers wrap the app in `main.tsx` in this order: `SettingsProvider`, `Favorit
 
 - Mobile-first Tailwind; breakpoints for the 1/2/3/4 column grid.
 - Skeleton cards while loading; an error panel with a retry button if the fetch fails; empty states for no results and no favorites.
-- Accessible: labelled inputs, visible focus, alt text on images, buttons that are real `<button>`s, enough contrast in both themes. Target Lighthouse accessibility 90+.
+- Accessible: labelled inputs, visible focus, alt text on images, buttons that are real `<button>`s, enough contrast. Target Lighthouse accessibility 90+.
 - Recipe cards show photo (with a neutral placeholder when none), title, category badge, prep time, average rating, heart, and a lock/"Staff pick" badge where relevant.
 - Use Sonner toasts for success and error messages.
 
@@ -283,12 +278,12 @@ recipe-book/
 ├─ public/
 ├─ src/
 │  ├─ main.tsx, App.tsx
-│  ├─ pages/        BrowsePage, RecipeDetailPage, RecipeFormPage, FavoritesPage, SettingsPage, NotFoundPage
+│  ├─ pages/        BrowsePage, RecipeDetailPage, RecipeFormPage, FavoritesPage, AboutPage, NotFoundPage
 │  ├─ components/
 │  │  ├─ layout/    Layout, Navbar
 │  │  ├─ recipe/    RecipeCard, RecipeGrid, FilterBar, IngredientChips, StarRating, ServingsScaler, PhotoPicker
 │  │  └─ ui/        (shadcn)
-│  ├─ context/      RecipesContext, FavoritesContext, SettingsContext
+│  ├─ context/      RecipesContext, FavoritesContext
 │  ├─ hooks/        useLocalStorage, useDebounce, useImageUpload
 │  ├─ lib/          supabase, types, image, device, utils
 │  └─ api/          recipes, ratings, upload
@@ -301,7 +296,7 @@ recipe-book/
 
 ```
 VITE_SUPABASE_URL=
-VITE_SUPABASE_ANON_KEY=
+VITE_SUPABASE_PUBLISHABLE_KEY=
 # Server-only (set in Vercel and in .env.local for `vercel dev`; never prefix with VITE_)
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
@@ -326,11 +321,11 @@ R2_PUBLIC_URL=
 ## Build order (milestones)
 
 1. **Scaffold:** Vite + TS, Tailwind, shadcn init, router with 5 stub pages + 404, `Layout`, `types.ts`, `.env.example`, `vercel.json`. Deploy to Vercel.
-2. **Data layer:** run the SQL, seed, `supabase.ts`, `api/recipes.ts`, `RecipesContext` (fetch, loading/error), `FavoritesContext`, `SettingsContext`, `useLocalStorage`.
+2. **Data layer:** run the SQL, seed, `supabase.ts`, `api/recipes.ts`, `RecipesContext` (fetch, loading/error), `FavoritesContext`, `useLocalStorage`.
 3. **Read path:** Browse grid, `RecipeCard`, search, category, ingredient chips, sort, featured toggle, Detail page with servings scaler, share button.
 4. **Write path:** `RecipeFormPage` with `react-hook-form` rules and `useFieldArray`, create and edit, delete with AlertDialog, lock badge for protected recipes.
 5. **Photos:** `api/upload.ts`, R2 + CORS, `useImageUpload`, preview and upload in the form.
-6. **Extras:** ratings (RPC, `StarRating`, remembered score), favorites page and heart, dark mode, Staff pick.
+6. **Extras:** ratings (RPC, `StarRating`, remembered score), favorites page and heart, Staff pick.
 7. **Polish:** loading/error/empty states, toasts, responsive pass at 375/768/1280, accessibility pass, Lighthouse.
 8. **Deliverables:** README, comments on providers and hooks, keep-alive workflow, final live test.
 
@@ -344,7 +339,7 @@ R2_PUBLIC_URL=
 
 ## Definition of done
 
-- All 17 features in the checklist work on the live URL.
+- All 16 active features in the checklist (F15 removed) work on the live URL.
 - Seeded recipes cannot be edited or deleted even by calling the API with the anon key.
 - Refreshing any route on the live site works.
 - `bunx tsc --noEmit` and `bun run build` pass with no errors.
