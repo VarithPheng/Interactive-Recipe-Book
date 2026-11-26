@@ -1,5 +1,5 @@
 // One recipe: photo, ingredients scaled by servings, steps, favorite and share.
-// Edit/delete arrive in milestone 4, ratings in milestone 6.
+// Own recipes get edit/delete; protected ones show only the lock badge. Ratings arrive in milestone 6.
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeftIcon, ClockIcon } from 'lucide-react'
@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { FavoriteButton } from '@/components/recipe/FavoriteButton'
 import { LoadError } from '@/components/recipe/LoadError'
 import { RatingSummary } from '@/components/recipe/RatingSummary'
+import { RecipeActions } from '@/components/recipe/RecipeActions'
 import { RecipeBadges } from '@/components/recipe/RecipeBadges'
 import { RecipePhoto } from '@/components/recipe/RecipePhoto'
 import { ServingsScaler } from '@/components/recipe/ServingsScaler'
@@ -76,6 +77,7 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
             <FavoriteButton id={recipe.id} title={recipe.title} withLabel />
             <ShareButton />
           </div>
+          {recipe.canDelete && <RecipeActions recipe={recipe} />}
         </div>
       </div>
 
