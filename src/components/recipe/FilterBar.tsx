@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { IngredientChips } from './IngredientChips'
-import { SORT_OPTIONS, type IngredientChip, type SortKey } from '@/lib/filters'
+import { SORT_OPTIONS, type SortKey } from '@/lib/filters'
 import { CATEGORIES, type Category } from '@/lib/types'
 
 type Props = {
@@ -17,16 +17,21 @@ type Props = {
   featuredOnly: boolean
   onFeaturedOnlyChange: (v: boolean) => void
   ingredientOptions: string[]
-  chips: IngredientChip[]
-  onChipsChange: (chips: IngredientChip[]) => void
+  ingredients: string[]
+  onIngredientsChange: (names: string[]) => void
 }
 
 export function FilterBar(p: Props) {
   return (
     <div className="space-y-3">
       <div className="relative">
-        <label htmlFor="search" className="sr-only">Search recipes by title</label>
-        <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+        <label htmlFor="search" className="sr-only">
+          Search recipes by title
+        </label>
+        <SearchIcon
+          className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden="true"
+        />
         <Input
           id="search"
           type="search"
@@ -39,7 +44,9 @@ export function FilterBar(p: Props) {
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
-          <label htmlFor="category" className="text-xs text-muted-foreground">Category</label>
+          <label htmlFor="category" className="text-xs text-muted-foreground">
+            Category
+          </label>
           <Select value={p.category} onValueChange={(v) => p.onCategoryChange(v as Category | 'All')}>
             <SelectTrigger id="category" className="w-36">
               <SelectValue />
@@ -47,21 +54,27 @@ export function FilterBar(p: Props) {
             <SelectContent>
               <SelectItem value="All">All</SelectItem>
               {CATEGORIES.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="sort" className="text-xs text-muted-foreground">Sort by</label>
+          <label htmlFor="sort" className="text-xs text-muted-foreground">
+            Sort by
+          </label>
           <Select value={p.sort} onValueChange={(v) => p.onSortChange(v as SortKey)}>
             <SelectTrigger id="sort" className="w-36">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {SORT_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -77,7 +90,7 @@ export function FilterBar(p: Props) {
         </Button>
       </div>
 
-      <IngredientChips options={p.ingredientOptions} chips={p.chips} onChange={p.onChipsChange} />
+      <IngredientChips options={p.ingredientOptions} selected={p.ingredients} onChange={p.onIngredientsChange} />
     </div>
   )
 }

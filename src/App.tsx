@@ -1,24 +1,75 @@
 // Route table. All pages render inside Layout (navbar + <Outlet/>).
+// Browse loads with the app; other pages are split into their own chunks and loaded on first visit,
+// showing a skeleton of the same layout while their code downloads.
+import { lazy, Suspense, type ReactNode } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
+import { AboutSkeleton, DetailSkeleton, FavoritesSkeleton, FormSkeleton } from '@/components/recipe/Skeletons'
 import { BrowsePage } from '@/pages/BrowsePage'
-import { RecipeDetailPage } from '@/pages/RecipeDetailPage'
-import { RecipeFormPage } from '@/pages/RecipeFormPage'
-import { FavoritesPage } from '@/pages/FavoritesPage'
-import { AboutPage } from '@/pages/AboutPage'
-import { NotFoundPage } from '@/pages/NotFoundPage'
+
+const RecipeDetailPage = lazy(() => import('@/pages/RecipeDetailPage').then((m) => ({ default: m.RecipeDetailPage })))
+const RecipeFormPage = lazy(() => import('@/pages/RecipeFormPage').then((m) => ({ default: m.RecipeFormPage })))
+const FavoritesPage = lazy(() => import('@/pages/FavoritesPage').then((m) => ({ default: m.FavoritesPage })))
+const AboutPage = lazy(() => import('@/pages/AboutPage').then((m) => ({ default: m.AboutPage })))
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
+
+function Lazy({ fallback, children }: { fallback: ReactNode; children: ReactNode }) {
+  return <Suspense fallback={fallback}>{children}</Suspense>
+}
 
 export function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<BrowsePage />} />
-        <Route path="recipes/new" element={<RecipeFormPage />} />
-        <Route path="recipes/:id" element={<RecipeDetailPage />} />
-        <Route path="recipes/:id/edit" element={<RecipeFormPage />} />
-        <Route path="favorites" element={<FavoritesPage />} />
-        <Route path="about" element={<AboutPage />} />
-        <Route path="*" element={<NotFoundPage />} />
+        <Route
+          path="recipes/new"
+          element={
+            <Lazy fallback={<FormSkeleton title="Add a recipe" />}>
+              <RecipeFormPage />
+            </Lazy>
+          }
+        />
+        <Route
+          path="recipes/:id"
+          element={
+            <Lazy fallback={<DetailSkeleton />}>
+              <RecipeDetailPage />
+            </Lazy>
+          }
+        />
+        <Route
+          path="recipes/:id/edit"
+          element={
+            <Lazy fallback={<FormSkeleton title="Edit recipe" />}>
+              <RecipeFormPage />
+            </Lazy>
+          }
+        />
+        <Route
+          path="favorites"
+          element={
+            <Lazy fallback={<FavoritesSkeleton />}>
+              <FavoritesPage />
+            </Lazy>
+          }
+        />
+        <Route
+          path="about"
+          element={
+            <Lazy fallback={<AboutSkeleton />}>
+              <AboutPage />
+            </Lazy>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <Lazy fallback={null}>
+              <NotFoundPage />
+            </Lazy>
+          }
+        />
       </Route>
     </Routes>
   )

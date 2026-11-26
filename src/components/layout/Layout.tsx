@@ -1,4 +1,5 @@
 // App shell: navbar on top, the current page below, and the toast container.
+import { Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Toaster } from '@/components/ui/sonner'
 import { Navbar } from './Navbar'
@@ -14,7 +15,10 @@ export function Layout() {
       </a>
       <Navbar />
       <main id="main" className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-        <Outlet />
+        {/* Safety net only: each lazy route has its own layout-matched skeleton in App.tsx. */}
+        <Suspense fallback={null}>
+          <Outlet />
+        </Suspense>
       </main>
       <Toaster theme="light" position="bottom-center" />
     </div>

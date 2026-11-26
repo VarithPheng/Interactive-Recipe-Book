@@ -1,11 +1,15 @@
 // Recipe form shared by create and edit. react-hook-form handles state and validation;
-// useFieldArray manages the ingredient and step rows.
+// useFieldArray manages the ingredient and step rows; useImageUpload handles the photo.
+import { useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { PlusIcon, Trash2Icon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useImageUpload } from '@/hooks/useImageUpload'
+import { PhotoPicker } from './PhotoPicker'
 import { CATEGORIES, UNITS, type Category, type Recipe, type RecipeInput, type Unit } from '@/lib/types'
 
 type FormValues = {
@@ -40,7 +44,11 @@ const isInt = (v: number) => Number.isInteger(v) || 'Use a whole number'
 
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null
-  return <p id={id} className="mt-1 text-sm text-destructive">{message}</p>
+  return (
+    <p id={id} className="mt-1 text-sm text-destructive">
+      {message}
+    </p>
+  )
 }
 
 const labelClass = 'mb-1 block text-sm font-medium'
@@ -52,6 +60,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ defaultValues: toDefaults(initial), mode: 'onTouched' })
+  const photo = useImageUpload()
+  // The photo already saved on the recipe (edit mode); null once removed.
+  const [existingPhoto, setExistingPhoto] = useState<string | null>(initial?.photoUrl ?? null)
 
   const ingredients = useFieldArray({
     control,
@@ -65,6 +76,17 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
   })
 
   async function submit(v: FormValues) {
+    // Upload first so the recipe is saved with its final photo URL.
+    let photoUrl = existingPhoto
+    if (photo.hasNewPhoto) {
+      try {
+        photoUrl = await photo.upload()
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'The photo could not be uploaded.')
+        return
+      }
+    }
+
     await onSubmit({
       title: v.title.trim(),
       description: v.description.trim() || null,
@@ -73,7 +95,7 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
       steps: v.steps.map((s) => s.text.trim()),
       prepMinutes: v.prepMinutes,
       servings: v.servings,
-      photoUrl: initial?.photoUrl ?? null, // TODO(milestone 5): photo picker and upload
+      photoUrl,
     })
   }
 
@@ -83,7 +105,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
         <legend className="sr-only">Basics</legend>
 
         <div>
-          <label htmlFor="title" className={labelClass}>Title</label>
+          <label htmlFor="title" className={labelClass}>
+            Title
+          </label>
           <Input
             id="title"
             aria-invalid={!!errors.title}
@@ -106,9 +130,22 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
           <Textarea id="description" rows={2} {...register('description')} />
         </div>
 
+        <PhotoPicker
+          imageUrl={photo.previewUrl ?? existingPhoto}
+          processing={photo.processing}
+          error={photo.error}
+          onSelect={photo.select}
+          onRemove={() => {
+            photo.clear()
+            setExistingPhoto(null)
+          }}
+        />
+
         <div className="grid gap-5 sm:grid-cols-3">
           <div>
-            <label htmlFor="category" className={labelClass}>Category</label>
+            <label htmlFor="category" className={labelClass}>
+              Category
+            </label>
             <Controller
               control={control}
               name="category"
@@ -127,7 +164,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     {CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -137,7 +176,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
           </div>
 
           <div>
-            <label htmlFor="prepMinutes" className={labelClass}>Prep time (minutes)</label>
+            <label htmlFor="prepMinutes" className={labelClass}>
+              Prep time (minutes)
+            </label>
             <Input
               id="prepMinutes"
               type="number"
@@ -157,7 +198,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
           </div>
 
           <div>
-            <label htmlFor="servings" className={labelClass}>Servings</label>
+            <label htmlFor="servings" className={labelClass}>
+              Servings
+            </label>
             <Input
               id="servings"
               type="number"
@@ -180,8 +223,13 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
 
       <fieldset>
         <legend className="font-heading text-2xl font-semibold">Ingredients</legend>
-        <div className="mt-1 hidden grid-cols-[1fr_6rem_7rem_2rem] gap-2 text-xs text-muted-foreground sm:grid" aria-hidden="true">
-          <span>Name</span><span>Amount</span><span>Unit</span>
+        <div
+          className="mt-1 hidden grid-cols-[1fr_6rem_7rem_2rem] gap-2 text-xs text-muted-foreground sm:grid"
+          aria-hidden="true"
+        >
+          <span>Name</span>
+          <span>Amount</span>
+          <span>Unit</span>
         </div>
         <ul className="mt-2 space-y-3">
           {ingredients.fields.map((field, i) => {
@@ -227,7 +275,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
                           </SelectTrigger>
                           <SelectContent>
                             {UNITS.map((u) => (
-                              <SelectItem key={u} value={u}>{u}</SelectItem>
+                              <SelectItem key={u} value={u}>
+                                {u}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -274,7 +324,10 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
             return (
               <li key={field.id}>
                 <div className="flex gap-2">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-medium" aria-hidden="true">
+                  <span
+                    className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-medium"
+                    aria-hidden="true"
+                  >
                     {i + 1}
                   </span>
                   <Textarea
@@ -310,8 +363,8 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
       </fieldset>
 
       <div className="flex gap-2 border-t border-border pt-6">
-        <Button type="submit" size="lg" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving…' : submitLabel}
+        <Button type="submit" size="lg" disabled={isSubmitting || photo.processing}>
+          {photo.uploading ? 'Uploading photo…' : isSubmitting ? 'Saving…' : submitLabel}
         </Button>
       </div>
     </form>

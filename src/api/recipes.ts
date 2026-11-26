@@ -57,7 +57,7 @@ function toRow(input: RecipeInput) {
   }
 }
 
-async function fetchRecipe(id: string): Promise<Recipe> {
+export async function fetchRecipe(id: string): Promise<Recipe> {
   const { data, error } = await supabase.from(VIEW).select('*').eq('id', id).single<RecipeRow>()
   if (error) throw new Error(error.message)
   return mapRow(data)

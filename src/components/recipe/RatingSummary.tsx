@@ -7,7 +7,7 @@ export function RatingSummary({ avg, count }: { avg: number; count: number }) {
   return (
     <span className="inline-flex items-center gap-1">
       <StarIcon className="size-4 fill-amber-500 text-amber-500" aria-hidden="true" />
-      <span>
+      <span aria-hidden="true">
         {avg.toFixed(1)}
         <span className="text-muted-foreground"> ({count})</span>
       </span>
