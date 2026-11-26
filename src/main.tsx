@@ -1,0 +1,16 @@
+// Entry point. Context providers (Settings > Favorites > Recipes) are added in milestone 2.
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import { Toaster } from '@/components/ui/sonner'
+import { App } from './App'
+import './index.css'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+      <Toaster position="bottom-center" />
+    </BrowserRouter>
+  </StrictMode>,
+)
