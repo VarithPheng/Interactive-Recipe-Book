@@ -1,11 +1,15 @@
 // Recipe form shared by create and edit. react-hook-form handles state and validation;
-// useFieldArray manages the ingredient and step rows.
+// useFieldArray manages the ingredient and step rows; useImageUpload handles the photo.
+import { useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { PlusIcon, Trash2Icon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useImageUpload } from '@/hooks/useImageUpload'
+import { PhotoPicker } from './PhotoPicker'
 import { CATEGORIES, UNITS, type Category, type Recipe, type RecipeInput, type Unit } from '@/lib/types'
 
 type FormValues = {
@@ -52,6 +56,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ defaultValues: toDefaults(initial), mode: 'onTouched' })
+  const photo = useImageUpload()
+  // The photo already saved on the recipe (edit mode); null once removed.
+  const [existingPhoto, setExistingPhoto] = useState<string | null>(initial?.photoUrl ?? null)
 
   const ingredients = useFieldArray({
     control,
@@ -65,6 +72,17 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
   })
 
   async function submit(v: FormValues) {
+    // Upload first so the recipe is saved with its final photo URL.
+    let photoUrl = existingPhoto
+    if (photo.hasNewPhoto) {
+      try {
+        photoUrl = await photo.upload()
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'The photo could not be uploaded.')
+        return
+      }
+    }
+
     await onSubmit({
       title: v.title.trim(),
       description: v.description.trim() || null,
@@ -73,7 +91,7 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
       steps: v.steps.map((s) => s.text.trim()),
       prepMinutes: v.prepMinutes,
       servings: v.servings,
-      photoUrl: initial?.photoUrl ?? null, // TODO(milestone 5): photo picker and upload
+      photoUrl,
     })
   }
 
@@ -105,6 +123,17 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
           </label>
           <Textarea id="description" rows={2} {...register('description')} />
         </div>
+
+        <PhotoPicker
+          imageUrl={photo.previewUrl ?? existingPhoto}
+          processing={photo.processing}
+          error={photo.error}
+          onSelect={photo.select}
+          onRemove={() => {
+            photo.clear()
+            setExistingPhoto(null)
+          }}
+        />
 
         <div className="grid gap-5 sm:grid-cols-3">
           <div>
@@ -310,8 +339,8 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
       </fieldset>
 
       <div className="flex gap-2 border-t border-border pt-6">
-        <Button type="submit" size="lg" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving…' : submitLabel}
+        <Button type="submit" size="lg" disabled={isSubmitting || photo.processing}>
+          {photo.uploading ? 'Uploading photo…' : isSubmitting ? 'Saving…' : submitLabel}
         </Button>
       </div>
     </form>

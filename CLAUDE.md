@@ -307,10 +307,10 @@ R2_PUBLIC_URL=
 
 ## Deployment
 
-- `vercel.json` must rewrite everything except `/api` to the SPA so deep links survive a refresh:
+- `vercel.json` must rewrite page routes (no file extension, not `/api`) to the SPA so deep links survive a refresh. It also skips Vite dev paths (`/src`, `/@...`, `/node_modules`), otherwise `vercel dev` serves `index.html` for JS modules and the page is blank:
 
 ```json
-{ "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }] }
+{ "rewrites": [{ "source": "/((?!api/|src/|@|node_modules/)[^.]*)", "destination": "/index.html" }] }
 ```
 
 - Set all environment variables in the Vercel project, then redeploy.
