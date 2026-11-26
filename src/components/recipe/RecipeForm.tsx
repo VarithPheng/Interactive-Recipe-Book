@@ -44,7 +44,11 @@ const isInt = (v: number) => Number.isInteger(v) || 'Use a whole number'
 
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null
-  return <p id={id} className="mt-1 text-sm text-destructive">{message}</p>
+  return (
+    <p id={id} className="mt-1 text-sm text-destructive">
+      {message}
+    </p>
+  )
 }
 
 const labelClass = 'mb-1 block text-sm font-medium'
@@ -101,7 +105,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
         <legend className="sr-only">Basics</legend>
 
         <div>
-          <label htmlFor="title" className={labelClass}>Title</label>
+          <label htmlFor="title" className={labelClass}>
+            Title
+          </label>
           <Input
             id="title"
             aria-invalid={!!errors.title}
@@ -137,7 +143,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
 
         <div className="grid gap-5 sm:grid-cols-3">
           <div>
-            <label htmlFor="category" className={labelClass}>Category</label>
+            <label htmlFor="category" className={labelClass}>
+              Category
+            </label>
             <Controller
               control={control}
               name="category"
@@ -156,7 +164,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     {CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -166,7 +176,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
           </div>
 
           <div>
-            <label htmlFor="prepMinutes" className={labelClass}>Prep time (minutes)</label>
+            <label htmlFor="prepMinutes" className={labelClass}>
+              Prep time (minutes)
+            </label>
             <Input
               id="prepMinutes"
               type="number"
@@ -186,7 +198,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
           </div>
 
           <div>
-            <label htmlFor="servings" className={labelClass}>Servings</label>
+            <label htmlFor="servings" className={labelClass}>
+              Servings
+            </label>
             <Input
               id="servings"
               type="number"
@@ -209,8 +223,13 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
 
       <fieldset>
         <legend className="font-heading text-2xl font-semibold">Ingredients</legend>
-        <div className="mt-1 hidden grid-cols-[1fr_6rem_7rem_2rem] gap-2 text-xs text-muted-foreground sm:grid" aria-hidden="true">
-          <span>Name</span><span>Amount</span><span>Unit</span>
+        <div
+          className="mt-1 hidden grid-cols-[1fr_6rem_7rem_2rem] gap-2 text-xs text-muted-foreground sm:grid"
+          aria-hidden="true"
+        >
+          <span>Name</span>
+          <span>Amount</span>
+          <span>Unit</span>
         </div>
         <ul className="mt-2 space-y-3">
           {ingredients.fields.map((field, i) => {
@@ -256,7 +275,9 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
                           </SelectTrigger>
                           <SelectContent>
                             {UNITS.map((u) => (
-                              <SelectItem key={u} value={u}>{u}</SelectItem>
+                              <SelectItem key={u} value={u}>
+                                {u}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -303,7 +324,10 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
             return (
               <li key={field.id}>
                 <div className="flex gap-2">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-medium" aria-hidden="true">
+                  <span
+                    className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-medium"
+                    aria-hidden="true"
+                  >
                     {i + 1}
                   </span>
                   <Textarea

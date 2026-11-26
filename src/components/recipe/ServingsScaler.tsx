@@ -12,13 +12,33 @@ export function ServingsScaler({ value, onChange }: Props) {
 
   return (
     <div className="inline-flex items-center gap-2">
-      <span id="servings-label" className="text-sm text-muted-foreground">Servings</span>
-      <div role="group" aria-labelledby="servings-label" className="inline-flex items-center rounded-lg border border-border">
-        <Button variant="ghost" size="icon" aria-label="Fewer servings" disabled={value <= MIN} onClick={() => set(value - 1)}>
+      <span id="servings-label" className="text-sm text-muted-foreground">
+        Servings
+      </span>
+      <div
+        role="group"
+        aria-labelledby="servings-label"
+        className="inline-flex items-center rounded-lg border border-border"
+      >
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Fewer servings"
+          disabled={value <= MIN}
+          onClick={() => set(value - 1)}
+        >
           <MinusIcon />
         </Button>
-        <output aria-live="polite" className="w-8 text-center text-sm font-medium tabular-nums">{value}</output>
-        <Button variant="ghost" size="icon" aria-label="More servings" disabled={value >= MAX} onClick={() => set(value + 1)}>
+        <output aria-live="polite" className="w-8 text-center text-sm font-medium tabular-nums">
+          {value}
+        </output>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="More servings"
+          disabled={value >= MAX}
+          onClick={() => set(value + 1)}
+        >
           <PlusIcon />
         </Button>
       </div>

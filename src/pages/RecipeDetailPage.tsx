@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeftIcon, ClockIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { FavoriteButton } from '@/components/recipe/FavoriteButton'
 import { LoadError } from '@/components/recipe/LoadError'
 import { RatingSummary } from '@/components/recipe/RatingSummary'
@@ -13,6 +12,7 @@ import { RecipeBadges } from '@/components/recipe/RecipeBadges'
 import { RecipePhoto } from '@/components/recipe/RecipePhoto'
 import { ServingsScaler } from '@/components/recipe/ServingsScaler'
 import { ShareButton } from '@/components/recipe/ShareButton'
+import { DetailSkeleton } from '@/components/recipe/Skeletons'
 import { StarRating } from '@/components/recipe/StarRating'
 import { useRecipes } from '@/context/RecipesContext'
 import { formatAmount, formatMinutes } from '@/lib/format'
@@ -81,7 +81,9 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
           </div>
           {recipe.canDelete && <RecipeActions recipe={recipe} />}
           <section aria-labelledby="rate-heading" className="border-t border-border pt-4">
-            <h2 id="rate-heading" className="text-sm font-medium">Rate this recipe</h2>
+            <h2 id="rate-heading" className="text-sm font-medium">
+              Rate this recipe
+            </h2>
             <StarRating value={myRating(recipe.id)} onRate={(score) => rate(recipe.id, score)} />
           </section>
         </div>
@@ -90,7 +92,9 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
       <div className="mt-10 grid gap-10 lg:grid-cols-[2fr_3fr]">
         <section aria-labelledby="ingredients-heading">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 id="ingredients-heading" className="font-heading text-2xl font-semibold">Ingredients</h2>
+            <h2 id="ingredients-heading" className="font-heading text-2xl font-semibold">
+              Ingredients
+            </h2>
             <ServingsScaler value={servings} onChange={setServings} />
           </div>
           <ul className="mt-4 divide-y divide-border border-y border-border">
@@ -104,11 +108,16 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
         </section>
 
         <section aria-labelledby="steps-heading">
-          <h2 id="steps-heading" className="font-heading text-2xl font-semibold">Steps</h2>
+          <h2 id="steps-heading" className="font-heading text-2xl font-semibold">
+            Steps
+          </h2>
           <ol className="mt-4 space-y-5">
             {recipe.steps.map((step, i) => (
               <li key={`${i}-${step}`} className="flex gap-4">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-medium" aria-hidden="true">
+                <span
+                  className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-medium"
+                  aria-hidden="true"
+                >
                   {i + 1}
                 </span>
                 <p className="max-w-prose pt-0.5 leading-relaxed">{step}</p>
@@ -118,19 +127,5 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
         </section>
       </div>
     </article>
-  )
-}
-
-function DetailSkeleton() {
-  return (
-    <div aria-busy="true" aria-label="Loading recipe" className="grid gap-8 lg:grid-cols-[3fr_2fr]">
-      <Skeleton className="aspect-[4/3] w-full" />
-      <div className="space-y-3">
-        <Skeleton className="h-5 w-24" />
-        <Skeleton className="h-10 w-3/4" />
-        <Skeleton className="h-5 w-full" />
-        <Skeleton className="h-5 w-2/3" />
-      </div>
-    </div>
   )
 }

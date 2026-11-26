@@ -45,9 +45,7 @@ export function RecipeActions({ recipe }: { recipe: Recipe }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete "{recipe.title}"?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This removes the recipe for everyone and can't be undone.
-            </AlertDialogDescription>
+            <AlertDialogDescription>This removes the recipe for everyone and can't be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep recipe</AlertDialogCancel>

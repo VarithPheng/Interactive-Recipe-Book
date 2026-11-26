@@ -3,7 +3,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { FilterBar } from '@/components/recipe/FilterBar'
 import { LoadError } from '@/components/recipe/LoadError'
-import { RecipeGrid, RecipeGridSkeleton } from '@/components/recipe/RecipeGrid'
+import { RecipeGrid } from '@/components/recipe/RecipeGrid'
+import { RecipeGridSkeleton } from '@/components/recipe/Skeletons'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useRecipes } from '@/context/RecipesContext'
 import { useDebounce } from '@/hooks/useDebounce'
 import { filterAndSort, type SortKey } from '@/lib/filters'
@@ -24,15 +26,19 @@ export function BrowsePage() {
   }, [])
 
   const visible = useMemo(
-    () => filterAndSort(items, { query: debouncedQuery, category, ingredients, featuredOnly, sort }),
+    () =>
+      filterAndSort(items, {
+        query: debouncedQuery,
+        category,
+        ingredients,
+        featuredOnly,
+        sort,
+      }),
     [items, debouncedQuery, category, ingredients, featuredOnly, sort],
   )
 
   // Every distinct ingredient across all recipes, for the ingredient picker.
-  const ingredientOptions = useMemo(
-    () => [...new Set(items.flatMap((r) => r.ingredientNames))].sort(),
-    [items],
-  )
+  const ingredientOptions = useMemo(() => [...new Set(items.flatMap((r) => r.ingredientNames))].sort(), [items])
 
   const filtersActive = query !== '' || category !== 'All' || ingredients.length > 0 || featuredOnly
 
@@ -64,16 +70,26 @@ export function BrowsePage() {
       </div>
 
       <div className="mt-8">
-        {status === 'loading' && <RecipeGridSkeleton />}
+        {status === 'loading' && (
+          <>
+            {/* Same height as the results row below, so the grid doesn't move when data arrives. */}
+            <div className="mb-4 flex min-h-7 items-center">
+              <Skeleton className="h-5 w-20" />
+            </div>
+            <RecipeGridSkeleton />
+          </>
+        )}
         {status === 'error' && <LoadError error={error} onRetry={reload} />}
         {status === 'success' && (
           <>
-            <div className="mb-4 flex items-center justify-between gap-4">
+            <div className="mb-4 flex min-h-7 items-center justify-between gap-4">
               <p className="text-sm text-muted-foreground" aria-live="polite">
                 {visible.length} {visible.length === 1 ? 'recipe' : 'recipes'}
               </p>
               {filtersActive && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>Clear filters</Button>
+                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                  Clear filters
+                </Button>
               )}
             </div>
             {visible.length > 0 ? (
@@ -85,7 +101,9 @@ export function BrowsePage() {
                   {items.length === 0 ? 'Nobody has added a recipe yet.' : 'Try a different search or remove a filter.'}
                 </p>
                 {filtersActive && (
-                  <Button variant="outline" className="mt-4" onClick={clearFilters}>Clear filters</Button>
+                  <Button variant="outline" className="mt-4" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
                 )}
               </div>
             )}

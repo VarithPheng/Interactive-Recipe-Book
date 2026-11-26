@@ -332,6 +332,7 @@ R2_PUBLIC_URL=
 ## Conventions
 
 - TypeScript strict mode, no `any`. Function components only. Named exports for components.
+- Format with Prettier (`bun run format`; config in `.prettierrc.json`: no semicolons, single quotes, width 120). `bun run format:check` must pass before committing.
 - Keep components small; put data access in `src/api`, never inside page components.
 - Never use array indexes as keys for lists that can change; use `id`.
 - Commit messages are short and specific (`feat: add ingredient filter chips`).

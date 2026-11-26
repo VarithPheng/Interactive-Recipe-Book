@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom'
 import { HeartIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LoadError } from '@/components/recipe/LoadError'
-import { RecipeGrid, RecipeGridSkeleton } from '@/components/recipe/RecipeGrid'
+import { RecipeGrid } from '@/components/recipe/RecipeGrid'
+import { RecipeGridSkeleton } from '@/components/recipe/Skeletons'
 import { useFavorites } from '@/context/FavoritesContext'
 import { useRecipes } from '@/context/RecipesContext'
 
@@ -33,9 +34,7 @@ export function FavoritesPage() {
             <div className="rounded-lg border border-dashed border-border p-10 text-center">
               <HeartIcon className="mx-auto size-8 text-muted-foreground" aria-hidden="true" />
               <h2 className="mt-3 font-medium">No favorites yet</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Tap the heart on any recipe to keep it here.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground">Tap the heart on any recipe to keep it here.</p>
               <Button asChild className="mt-4">
                 <Link to="/">Browse recipes</Link>
               </Button>

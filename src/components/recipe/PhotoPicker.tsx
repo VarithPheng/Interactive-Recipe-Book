@@ -39,7 +39,11 @@ export function PhotoPicker({ imageUrl, processing, error, onSelect, onRemove }:
 
       {imageUrl ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <img src={imageUrl} alt="Selected recipe photo" className="aspect-[4/3] w-full sm:max-w-xs rounded-lg bg-muted object-cover" />
+          <img
+            src={imageUrl}
+            alt="Selected recipe photo"
+            className="aspect-[4/3] w-full sm:max-w-xs rounded-lg bg-muted object-cover"
+          />
           <div className="flex gap-2">
             <Button type="button" variant="outline" disabled={processing} onClick={() => inputRef.current?.click()}>
               Change photo
@@ -62,9 +66,13 @@ export function PhotoPicker({ imageUrl, processing, error, onSelect, onRemove }:
       )}
 
       {error ? (
-        <p id="photo-error" className="mt-1 text-sm text-destructive">{error}</p>
+        <p id="photo-error" className="mt-1 text-sm text-destructive">
+          {error}
+        </p>
       ) : (
-        <p id="photo-hint" className="mt-1 text-xs text-muted-foreground">JPEG, PNG or WebP, up to 5 MB. Large photos are resized.</p>
+        <p id="photo-hint" className="mt-1 text-xs text-muted-foreground">
+          JPEG, PNG or WebP, up to 5 MB. Large photos are resized.
+        </p>
       )}
     </div>
   )

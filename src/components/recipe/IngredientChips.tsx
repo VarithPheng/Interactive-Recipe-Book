@@ -15,15 +15,21 @@ export function IngredientChips({ options, selected, onChange }: Props) {
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor="ingredient" className="text-xs text-muted-foreground">Ingredient</label>
+      <label htmlFor="ingredient" className="text-xs text-muted-foreground">
+        Ingredient
+      </label>
       {/* value stays empty so the picker resets to its placeholder after each pick */}
       <Select value="" onValueChange={(name) => onChange([...selected, name])} disabled={remaining.length === 0}>
         <SelectTrigger id="ingredient" className="w-full">
-          <SelectValue placeholder={remaining.length ? 'Add an ingredient' : 'All ingredients added'} />
+          <SelectValue
+            placeholder={options.length > 0 && remaining.length === 0 ? 'All ingredients added' : 'Add an ingredient'}
+          />
         </SelectTrigger>
         <SelectContent className="max-h-[min(24rem,var(--radix-select-content-available-height))] w-(--radix-select-trigger-width)">
           {remaining.map((name) => (
-            <SelectItem key={name} value={name}>{capitalize(name)}</SelectItem>
+            <SelectItem key={name} value={name}>
+              {capitalize(name)}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -31,7 +37,10 @@ export function IngredientChips({ options, selected, onChange }: Props) {
       {selected.length > 0 && (
         <ul className="mt-2 flex flex-wrap gap-2" aria-label="Ingredient filters">
           {selected.map((name) => (
-            <li key={name} className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 py-0.5 pl-2.5 text-sm">
+            <li
+              key={name}
+              className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 py-0.5 pl-2.5 text-sm"
+            >
               {capitalize(name)}
               <button
                 type="button"

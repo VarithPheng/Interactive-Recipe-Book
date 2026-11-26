@@ -59,5 +59,14 @@ export function useImageUpload() {
     }
   }, [blob])
 
-  return { hasNewPhoto: blob !== null, previewUrl: blob ? previewUrl : null, error, processing, uploading, select, clear, upload }
+  return {
+    hasNewPhoto: blob !== null,
+    previewUrl: blob ? previewUrl : null,
+    error,
+    processing,
+    uploading,
+    select,
+    clear,
+    upload,
+  }
 }

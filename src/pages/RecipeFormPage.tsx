@@ -3,9 +3,9 @@ import { useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftIcon, LockIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { LoadError } from '@/components/recipe/LoadError'
 import { RecipeForm } from '@/components/recipe/RecipeForm'
+import { FormSkeleton } from '@/components/recipe/Skeletons'
 import { useRecipes } from '@/context/RecipesContext'
 import type { RecipeInput } from '@/lib/types'
 
@@ -52,15 +52,7 @@ export function RecipeFormPage() {
     )
   }
 
-  if (status === 'loading') {
-    return (
-      <div className="max-w-3xl space-y-4" aria-busy="true" aria-label="Loading recipe">
-        <Skeleton className="h-10 w-1/2" />
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-16 w-full" />
-      </div>
-    )
-  }
+  if (status === 'loading') return <FormSkeleton title={heading} />
   if (status === 'error') return <LoadError error={error} onRetry={reload} />
 
   if (!recipe) {
@@ -68,7 +60,9 @@ export function RecipeFormPage() {
       <section className="py-16">
         <h1 className="font-heading text-3xl font-semibold tracking-tight">Recipe not found</h1>
         <p className="mt-2 text-muted-foreground">It may have been deleted, or the link is wrong.</p>
-        <Button asChild className="mt-6"><Link to="/">Browse recipes</Link></Button>
+        <Button asChild className="mt-6">
+          <Link to="/">Browse recipes</Link>
+        </Button>
       </section>
     )
   }
@@ -80,10 +74,16 @@ export function RecipeFormPage() {
           <LockIcon className="size-6" aria-hidden="true" />
           This recipe is protected
         </h1>
-        <p className="mt-2 text-muted-foreground">Starter recipes can't be edited. You can add your own recipe instead.</p>
+        <p className="mt-2 text-muted-foreground">
+          Starter recipes can't be edited. You can add your own recipe instead.
+        </p>
         <div className="mt-6 flex gap-2">
-          <Button asChild><Link to="/recipes/new">Add a recipe</Link></Button>
-          <Button asChild variant="outline"><Link to={`/recipes/${recipe.id}`}>Back to recipe</Link></Button>
+          <Button asChild>
+            <Link to="/recipes/new">Add a recipe</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to={`/recipes/${recipe.id}`}>Back to recipe</Link>
+          </Button>
         </div>
       </section>
     )
