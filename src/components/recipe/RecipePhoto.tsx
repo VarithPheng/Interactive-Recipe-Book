@@ -22,6 +22,8 @@ export function RecipePhoto({ src, alt, className, eager = false }: Props) {
       src={src}
       alt={alt}
       loading={eager ? 'eager' : 'lazy'}
+      // React 18 only passes the lowercase attribute through to the DOM.
+      {...(eager ? { fetchpriority: 'high' } : {})}
       onError={() => setFailed(true)}
       className={cn('bg-muted object-cover', className)}
     />

@@ -16,13 +16,12 @@ export function StarRating({ value, onRate }: Props) {
 
   return (
     <div>
-      <div role="radiogroup" aria-label="Your rating" className="inline-flex" onMouseLeave={() => setHover(null)}>
+      <div role="group" aria-label="Your rating" className="inline-flex" onMouseLeave={() => setHover(null)}>
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
             type="button"
-            role="radio"
-            aria-checked={value === n}
+            aria-pressed={value === n}
             aria-label={`${n} ${n === 1 ? 'star' : 'stars'}, ${LABELS[n - 1]}`}
             onMouseEnter={() => setHover(n)}
             onFocus={() => setHover(n)}

@@ -1,6 +1,6 @@
 # Recipe Book
 
-A public recipe book built with React for a university frontend course. Anyone can browse recipes, filter them by category or ingredient, scale ingredient amounts to the number of servings, rate recipes, save favorites on their device, and add their own recipes with a photo.
+A public recipe book built with React for a university frontend course. Anyone can browse recipes, filter them by category or ingredient, scale ingredient amounts to the number of servings, rate recipes, save favorites on their device, build a shopping list from recipes, and add their own recipes with a photo.
 
 - **Live site:** https://interactive-recipe-book-five.vercel.app
 - **Repository:** https://github.com/VarithPheng/Interactive-Recipe-Book
@@ -26,7 +26,7 @@ A public recipe book built with React for a university frontend course. Anyone c
 | #   | Feature                                                                                                   | Page             | Done |
 | --- | --------------------------------------------------------------------------------------------------------- | ---------------- | ---- |
 | F1  | Six starter recipes load on first visit                                                                   | Browse           | ✅   |
-| F2  | Title search that waits 300 ms after you stop typing (`useDebounce`)                                      | Browse           | ✅   |
+| F2  | Title search that waits 300 ms after you stop typing (`useDebounce`); filters are kept in the URL, so Back, refresh and shared links keep them | Browse | ✅ |
 | F3  | Category filter: All plus 7 categories                                                                    | Browse           | ✅   |
 | F4  | Ingredient filter: pick ingredients from a list; recipes must contain every one (include only)           | Browse           | ✅   |
 | F5  | Sort by newest, quickest or top rated                                                                     | Browse           | ✅   |
@@ -42,8 +42,9 @@ A public recipe book built with React for a university frontend course. Anyone c
 | F15 | ~~Dark mode~~: removed by team decision; the app uses one light theme                                     | n/a              | ➖   |
 | F16 | Responsive layout: 1, 2, 3 or 4 columns; tested at 375, 768 and 1280 px                                   | All              | ✅   |
 | F17 | Skeleton loading states matched to each page, error panel with retry, empty states, toasts                | All              | ✅   |
+| F18 | Shopping list: add a recipe's ingredients at the chosen servings; same ingredients merge; tick, remove (with undo), copy as text | Detail, Shopping list | ✅ |
 
-Pages: Browse (`/`), Recipe detail (`/recipes/:id`), Add and edit (`/recipes/new`, `/recipes/:id/edit`), Favorites (`/favorites`), About (`/about`), and a not-found page for any other URL.
+Pages: Browse (`/`), Recipe detail (`/recipes/:id`), Add and edit (`/recipes/new`, `/recipes/:id/edit`), Favorites (`/favorites`), Shopping list (`/shopping-list`), About (`/about`), and a not-found page for any other URL.
 
 ## Tech stack
 
@@ -66,6 +67,8 @@ flowchart LR
   subgraph Browser
     Pages --> RecipesContext
     Pages --> FavoritesContext
+    Pages --> ShoppingListContext
+    ShoppingListContext --> LS
     RecipesContext --> API["src/api/*"]
     FavoritesContext --> LS[(localStorage)]
     RecipesContext --> LS
@@ -82,8 +85,9 @@ flowchart LR
 | ------------------ | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `RecipesContext`   | All recipes, loading/error status (`useReducer`), and this device's own ratings                    | Browse, Detail, Form and Favorites all read the same list, so it is fetched once |
 | `FavoritesContext` | The ids of favorite recipes, saved in localStorage and kept in sync across open tabs               | The heart appears on cards, the detail page and the Favorites page               |
+| `ShoppingListContext` | Shopping list lines (merged by ingredient name and unit, with a ticked flag), saved in localStorage | The Detail page adds to it; the Shopping list page reads and edits it |
 
-`RecipesContext` loads recipes in a `useEffect` and exposes `reload()` for the retry button. Creating and editing wait for the server. Deleting and rating update the screen straight away and roll back with an error toast if the server refuses. Filtering and sorting happen in the browser with `useMemo`, and the filter state stays local to the Browse page with `useState`.
+`RecipesContext` loads recipes in a `useEffect` and exposes `reload()` for the retry button. Creating and editing wait for the server. Deleting and rating update the screen straight away and roll back with an error toast if the server refuses. Filtering and sorting happen in the browser with `useMemo`. The filters are read from the URL (`useSearchParams`), so they survive Back, refresh and sharing.
 
 ### Custom hooks
 
@@ -109,13 +113,13 @@ api/upload.ts            Vercel function: presigned R2 upload URL
 supabase/                SQL: schema and policies, seed data, seed photo path update
 src/
   App.tsx, main.tsx      Routes and providers
-  pages/                 Browse, RecipeDetail, RecipeForm, Favorites, About, NotFound
+  pages/                 Browse, RecipeDetail, RecipeForm, Favorites, ShoppingList, About, NotFound
   components/layout/     Layout, Navbar
   components/recipe/     Card, grid, filters, form, photo picker, stars, skeletons, ...
   components/ui/         shadcn/ui components
-  context/               RecipesContext, FavoritesContext
+  context/               RecipesContext, FavoritesContext, ShoppingListContext
   hooks/                 useLocalStorage, useDebounce, useImageUpload
-  lib/                   types, filters, formatting, image resizing, Supabase client
+  lib/                   types, filters, formatting, image resizing, Supabase client, page loaders
   api/                   recipes, ratings, upload
 ```
 

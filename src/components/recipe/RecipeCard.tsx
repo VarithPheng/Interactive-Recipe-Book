@@ -17,7 +17,7 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
       <FavoriteButton id={recipe.id} title={recipe.title} className="absolute top-2 right-2 z-10" />
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <h2 className="font-heading text-lg leading-snug font-semibold">
+        <h2 className="font-heading text-lg leading-snug font-semibold wrap-anywhere">
           <Link to={`/recipes/${recipe.id}`} className="outline-none after:absolute after:inset-0 hover:underline">
             {recipe.title}
           </Link>

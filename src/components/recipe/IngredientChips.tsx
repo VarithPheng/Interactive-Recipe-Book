@@ -39,9 +39,9 @@ export function IngredientChips({ options, selected, onChange }: Props) {
           {selected.map((name) => (
             <li
               key={name}
-              className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 py-0.5 pl-2.5 text-sm"
+              className="inline-flex max-w-full items-center rounded-full border border-primary/40 bg-primary/10 py-0.5 pl-2.5 text-sm"
             >
-              {capitalize(name)}
+              <span className="min-w-0 wrap-anywhere">{capitalize(name)}</span>
               <button
                 type="button"
                 onClick={() => onChange(selected.filter((n) => n !== name))}

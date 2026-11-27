@@ -6,7 +6,7 @@ A public recipe book in React for a university frontend final project. Read this
 
 - Build in the milestones listed under "Build order". After each milestone run `bunx tsc --noEmit` and `bun run build`, and fix errors before moving on.
 - Ask the user for credentials (Supabase URL/anon key, R2 keys). Never invent values and never commit secrets. Leave `// TODO(user):` comments for steps that need the user's accounts.
-- Keep shared files stable: `src/App.tsx` routes, `src/lib/types.ts`, and the two context files. Change them deliberately and tell the user.
+- Keep shared files stable: `src/App.tsx` routes, `src/lib/types.ts`, and the three context files. Change them deliberately and tell the user.
 - The grader scores React concepts, so keep `useState`, `useEffect`, Context and custom hooks visible and commented. Do not hide them behind libraries.
 - Do NOT add: dark mode or a theme toggle (light theme only), authentication, Zod, a Pantry Finder page, a client-side data cache layer, a units (metric/imperial) toggle, TanStack Query, or Redux.
 
@@ -45,7 +45,7 @@ Course project, 100 points. Requirements:
 - **No offline cache.** If the API fails, show an error state with a retry button.
 - **Filtering and sorting are client-side.** Fetch all recipes once, then filter with `useMemo`.
 
-## Pages and routes (5 pages + 404)
+## Pages and routes (6 pages + 404)
 
 | Route | Page | Purpose |
 | --- | --- | --- |
@@ -53,6 +53,7 @@ Course project, 100 points. Requirements:
 | `/recipes/:id` | `RecipeDetailPage` | Photo, ingredients with servings scaler, steps, rating, favorite, share, edit/delete |
 | `/recipes/new` and `/recipes/:id/edit` | `RecipeFormPage` | One form component, create and edit modes |
 | `/favorites` | `FavoritesPage` | Recipes favorited on this device |
+| `/shopping-list` | `ShoppingListPage` | Ingredients added from recipes, merged; tick off, remove (with undo), copy as text |
 | `/about` | `AboutPage` | Project info, team, repo link |
 | `*` | `NotFoundPage` | Not-found state |
 
@@ -79,6 +80,7 @@ All pages render inside a `Layout` (navbar with links, mobile menu, `<Outlet/>`)
 | F15 | ~~Dark mode~~ | n/a | Removed by user decision (light theme only). Numbering kept so other IDs stay stable. |
 | F16 | Responsive layout | All | Usable at 375, 768 and 1280 px; grid is 1/2/3/4 columns |
 | F17 | Loading, error and empty states, toasts | All | Skeletons while loading, error with retry, friendly empty states |
+| F18 | Shopping list | Detail, Shopping list | "Add to shopping list" adds ingredients scaled to the chosen servings; same name and unit merge (quantities summed); tick, remove with undo, remove ticked, clear, copy; persists in localStorage |
 
 Form validation rules (`react-hook-form` rules, inline messages):
 
@@ -200,8 +202,9 @@ Insert 6 realistic recipes with `can_delete = false` and `is_featured = true` on
 - `src/lib/supabase.ts` creates the client from `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
 - `src/api/recipes.ts`:
   - `fetchRecipes()`: `from('recipes_with_rating').select('*').order('created_at', { ascending: false })`, mapped from snake_case to the `Recipe` type by a single `mapRow` function.
-  - `createRecipe(input)`: insert into `recipes` (never the view), computing `ingredient_names`, then `.select().single()` and re-read the row from the view by id.
-  - `updateRecipe(id, input)` and `deleteRecipe(id)`: against `recipes`. Throw if the response affects 0 rows (that means RLS refused it).
+  - `createRecipe(input)`: insert into `recipes` (never the view), computing `ingredient_names`, then `.select('*').single()` and map it with `avg_rating = 0`, `rating_count = 0` (a new recipe has no ratings, so no re-read of the view).
+  - `updateRecipe(id, input)`: update `recipes` with `.select('*')` and return the saved row without ratings (`SavedRecipe`); the context keeps the recipe's current `avgRating`/`ratingCount`, so there is no re-read.
+  - `updateRecipe` and `deleteRecipe(id)` throw if the response affects 0 rows (that means RLS refused it).
 - `src/api/ratings.ts`: `rateRecipe(recipeId, deviceId, score)` calls `supabase.rpc('rate_recipe', {...})`.
 - `src/api/upload.ts`: `uploadPhoto(blob)` calls `/api/upload`, PUTs the blob to the returned URL, returns the public URL.
 - All functions throw on error; the contexts catch and show toasts.
@@ -213,7 +216,7 @@ Client (`hooks/useImageUpload.ts` + `lib/image.ts`):
 1. Validate type (jpeg/png/webp) and size (<= 5 MB).
 2. Resize so the longest side is <= 1200 px using a canvas, export as `image/webp` (quality about 0.8).
 3. Show a preview with `URL.createObjectURL`; revoke it in the `useEffect` cleanup.
-4. On form submit, upload first, then save the recipe with `photoUrl`.
+4. Start the upload as soon as the photo is picked (in the background). On submit, wait for that upload (retry once if it failed), then save the recipe with `photoUrl`. The submit button shows one loading state (spinner + "Saving…").
 
 Server (`api/upload.ts`, Vercel function, Node runtime):
 
@@ -228,7 +231,7 @@ Server (`api/upload.ts`, Vercel function, Node runtime):
 
 ## State and hooks
 
-Providers wrap the app in `main.tsx` in this order: `FavoritesProvider`, `RecipesProvider`, router. Each context file exports a provider and a consumer hook (`useRecipes`, `useFavorites`) that throws a clear error if used outside its provider. Add a short comment block at the top of each provider explaining what state it owns and why.
+Providers wrap the app in `main.tsx` in this order: `FavoritesProvider`, `RecipesProvider`, `ShoppingListProvider`, router. Each context file exports a provider and a consumer hook (`useRecipes`, `useFavorites`, `useShoppingList`) that throws a clear error if used outside its provider. Add a short comment block at the top of each provider explaining what state it owns and why.
 
 **`RecipesContext`** (`useReducer`)
 
@@ -243,13 +246,18 @@ Providers wrap the app in `main.tsx` in this order: `FavoritesProvider`, `Recipe
 - When recipes finish loading, prune ids that no longer exist.
 - A `useEffect` listens for the window `storage` event so other tabs stay in sync.
 
+**`ShoppingListContext`**
+
+- Array of merged items `{ id: name|unit, name, qty, unit, checked, recipes }` via `useLocalStorage('recipebook:shopping-list:v1', [])`.
+- `addRecipe(title, ingredients, factor)`, `toggle`, `remove`, `clearChecked`, `clearAll`, `restore` (for Undo). The page derives counts and copy text with `useMemo`; `piece` amounts round up for display.
+
 **Custom hooks (`src/hooks/`)**
 
 - `useLocalStorage<T>(key, initial)`: `useState` initialised from storage inside a try/catch (bad JSON falls back to `initial`), and a `useEffect` that writes on change.
 - `useDebounce<T>(value, ms)`.
 - `useImageUpload()`: handles validate, resize, preview URL, upload and its loading/error state.
 
-**Other local storage keys:** `recipebook:device-id` (generated once with `crypto.randomUUID()`, used for ratings) and `recipebook:my-ratings:v1` (map of recipe id to the user's score, so their own stars show after refresh).
+**Other local storage keys:** `recipebook:device-id` (generated once with `crypto.randomUUID()`, used for ratings) `recipebook:my-ratings:v1` (map of recipe id to the user's score, so their own stars show after refresh) and `recipebook:shopping-list:v1` (the shopping list).
 
 ## Filtering and sorting rules (Browse)
 
@@ -258,7 +266,7 @@ Providers wrap the app in `main.tsx` in this order: `FavoritesProvider`, `Recipe
 - Ingredient chips: include only. A recipe passes only if every chip name matches some entry in `ingredientNames` (substring match, case-insensitive).
 - Featured toggle: only `isFeatured`.
 - Sort: newest (`createdAt` desc), quickest (`prepMinutes` asc, nulls last), top rated (`avgRating` desc, then `ratingCount` desc).
-- Compute the final list with `useMemo`. Keep filter state in the Browse page with `useState`; do not put it in a context.
+- Compute the final list with `useMemo`. Filter state lives in the URL search params (`useSearchParams`: `q`, `category`, `ing` (repeated), `staff=1`, `sort`), written with `replace: true` and default values omitted, so Back from a recipe, refresh and shared links keep the filters. Do not put it in a context.
 
 ## UI and UX requirements
 
@@ -278,14 +286,14 @@ recipe-book/
 ├─ public/
 ├─ src/
 │  ├─ main.tsx, App.tsx
-│  ├─ pages/        BrowsePage, RecipeDetailPage, RecipeFormPage, FavoritesPage, AboutPage, NotFoundPage
+│  ├─ pages/        BrowsePage, RecipeDetailPage, RecipeFormPage, FavoritesPage, ShoppingListPage, AboutPage, NotFoundPage
 │  ├─ components/
 │  │  ├─ layout/    Layout, Navbar
 │  │  ├─ recipe/    RecipeCard, RecipeGrid, FilterBar, IngredientChips, StarRating, ServingsScaler, PhotoPicker
 │  │  └─ ui/        (shadcn)
-│  ├─ context/      RecipesContext, FavoritesContext
+│  ├─ context/      RecipesContext, FavoritesContext, ShoppingListContext
 │  ├─ hooks/        useLocalStorage, useDebounce, useImageUpload
-│  ├─ lib/          supabase, types, image, device, utils
+│  ├─ lib/          supabase, types, image, device, utils, pages (lazy page loaders, shared with preloads)
 │  └─ api/          recipes, ratings, upload
 ├─ .env.example, vercel.json, README.md, CLAUDE.md
 ```
@@ -340,7 +348,7 @@ R2_PUBLIC_URL=
 
 ## Definition of done
 
-- All 16 active features in the checklist (F15 removed) work on the live URL.
+- All 17 active features in the checklist (F15 removed) work on the live URL.
 - Seeded recipes cannot be edited or deleted even by calling the API with the anon key.
 - Refreshing any route on the live site works.
 - `bunx tsc --noEmit` and `bun run build` pass with no errors.

@@ -4,14 +4,29 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
-import { AboutSkeleton, DetailSkeleton, FavoritesSkeleton, FormSkeleton } from '@/components/recipe/Skeletons'
+import {
+  AboutSkeleton,
+  DetailSkeleton,
+  FavoritesSkeleton,
+  FormSkeleton,
+  ShoppingListSkeleton,
+} from '@/components/recipe/Skeletons'
+import {
+  loadAboutPage,
+  loadDetailPage,
+  loadFavoritesPage,
+  loadFormPage,
+  loadNotFoundPage,
+  loadShoppingListPage,
+} from '@/lib/pages'
 import { BrowsePage } from '@/pages/BrowsePage'
 
-const RecipeDetailPage = lazy(() => import('@/pages/RecipeDetailPage').then((m) => ({ default: m.RecipeDetailPage })))
-const RecipeFormPage = lazy(() => import('@/pages/RecipeFormPage').then((m) => ({ default: m.RecipeFormPage })))
-const FavoritesPage = lazy(() => import('@/pages/FavoritesPage').then((m) => ({ default: m.FavoritesPage })))
-const AboutPage = lazy(() => import('@/pages/AboutPage').then((m) => ({ default: m.AboutPage })))
-const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
+const RecipeDetailPage = lazy(() => loadDetailPage().then((m) => ({ default: m.RecipeDetailPage })))
+const RecipeFormPage = lazy(() => loadFormPage().then((m) => ({ default: m.RecipeFormPage })))
+const FavoritesPage = lazy(() => loadFavoritesPage().then((m) => ({ default: m.FavoritesPage })))
+const ShoppingListPage = lazy(() => loadShoppingListPage().then((m) => ({ default: m.ShoppingListPage })))
+const AboutPage = lazy(() => loadAboutPage().then((m) => ({ default: m.AboutPage })))
+const NotFoundPage = lazy(() => loadNotFoundPage().then((m) => ({ default: m.NotFoundPage })))
 
 function Lazy({ fallback, children }: { fallback: ReactNode; children: ReactNode }) {
   return <Suspense fallback={fallback}>{children}</Suspense>
@@ -51,6 +66,14 @@ export function App() {
           element={
             <Lazy fallback={<FavoritesSkeleton />}>
               <FavoritesPage />
+            </Lazy>
+          }
+        />
+        <Route
+          path="shopping-list"
+          element={
+            <Lazy fallback={<ShoppingListSkeleton />}>
+              <ShoppingListPage />
             </Lazy>
           }
         />

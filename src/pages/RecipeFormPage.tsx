@@ -7,6 +7,7 @@ import { LoadError } from '@/components/recipe/LoadError'
 import { RecipeForm } from '@/components/recipe/RecipeForm'
 import { FormSkeleton } from '@/components/recipe/Skeletons'
 import { useRecipes } from '@/context/RecipesContext'
+import { loadDetailPage } from '@/lib/pages'
 import type { RecipeInput } from '@/lib/types'
 
 export function RecipeFormPage() {
@@ -20,6 +21,11 @@ export function RecipeFormPage() {
   useEffect(() => {
     document.title = `${heading} | Recipe Book`
   }, [heading])
+
+  // Fetch the detail page's code now, so the redirect after saving is instant.
+  useEffect(() => {
+    void loadDetailPage()
+  }, [])
 
   async function handleCreate(input: RecipeInput) {
     const saved = await create(input)
