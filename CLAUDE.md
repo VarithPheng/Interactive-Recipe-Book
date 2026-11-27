@@ -73,7 +73,7 @@ All pages render inside a `Layout` (navbar with links, mobile menu, `<Outlet/>`)
 | F8 | Add recipe, validated | Form | Rules below; inline errors; success toast and redirect to detail |
 | F9 | Edit own recipe | Form | Prefilled form; only when `canDelete` |
 | F10 | Delete own recipe | Detail | AlertDialog confirm; seeded recipes show a lock badge and no buttons |
-| F11 | Photo upload | Form | Pick, preview, resize to WebP, upload to R2, save URL |
+| F11 | Photo upload | Form | Pick any photo, preview, compress to JPEG, upload to R2, save URL |
 | F12 | Favorite toggle and page | Detail, Favorites | Heart toggle on cards and detail; persists across refresh |
 | F13 | Ratings | Detail, Browse | Click 1-5 stars; average and count shown on cards; own rating remembered |
 | F14 | Share link | Detail | Copy button puts the full detail URL on the clipboard, toast confirms |
@@ -89,7 +89,7 @@ Form validation rules (`react-hook-form` rules, inline messages):
 - `ingredients`: at least 1 row; each row needs `name` (required) and `qty` (number > 0); `unit` from the unit list
 - `steps`: at least 1 step, each non-empty
 - `prepMinutes`: integer 1-1440; `servings`: integer 1-100
-- `photo`: optional; image/jpeg, image/png or image/webp; max 5 MB before resize
+- `photo`: optional; any image the browser can decode (input `accept="image/*"`); max 20 MB before compression
 - Use `useFieldArray` for ingredient and step rows.
 
 ## Types (`src/lib/types.ts`)
@@ -213,19 +213,20 @@ Insert 6 realistic recipes with `can_delete = false` and `is_featured = true` on
 
 Client (`hooks/useImageUpload.ts` + `lib/image.ts`):
 
-1. Validate type (jpeg/png/webp) and size (<= 5 MB).
-2. Resize so the longest side is <= 1200 px using a canvas, export as `image/webp` (quality about 0.8).
+1. Validate it is an image and <= 20 MB (phone photos are often larger than 5 MB).
+2. Decode with `createImageBitmap` (fallback: `<img>`, which lets Safari read HEIC), scale so the longest side is <= 1600 px, paint on a white background, and export as `image/jpeg` (quality 0.82, then 0.7 and 0.55 if still over 2 MB). Do not use WebP: Safari cannot encode it. Re-encoding also strips location metadata.
 3. Show a preview with `URL.createObjectURL`; revoke it in the `useEffect` cleanup.
 4. Start the upload as soon as the photo is picked (in the background). On submit, wait for that upload (retry once if it failed), then save the recipe with `photoUrl`. The submit button shows one loading state (spinner + "Saving…").
 
 Server (`api/upload.ts`, Vercel function, Node runtime):
 
 - `POST` with JSON `{ contentType, size }`.
-- Reject unless `contentType === 'image/webp'` and `size <= 2_000_000`.
-- Key: `recipes/${crypto.randomUUID()}.webp`.
+- Reject unless `contentType === 'image/jpeg'` and `size <= 2_000_000`.
+- Key: `recipes/${crypto.randomUUID()}.jpg`.
 - Use `@aws-sdk/client-s3` with `endpoint: https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`, `region: 'auto'`, and `@aws-sdk/s3-request-presigner` to presign a `PutObjectCommand` (`ContentType` signed) with `expiresIn: 60`.
 - Return `{ uploadUrl, publicUrl: `${R2_PUBLIC_URL}/${key}` }`.
-- The client PUTs with header `Content-Type: image/webp`.
+- Sign `ContentType` and `ContentLength` (`signableHeaders: new Set(['content-type'])`), so R2 rejects a different type or size.
+- The client PUTs with header `Content-Type: image/jpeg`.
 - R2 bucket CORS: allow `PUT` from the production origin and `http://localhost:3000`, header `Content-Type`.
 - Local testing needs `vercel dev` (plain `vite` does not run `/api`).
 

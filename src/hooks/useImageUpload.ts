@@ -1,10 +1,10 @@
-// Manages one photo for the recipe form: validate, resize to WebP, preview, and upload.
+// Manages one photo for the recipe form: validate, compress to JPEG, preview, and upload.
 // The upload starts as soon as a photo is picked, so saving the form rarely has to wait for it.
 // State: the resized blob, its preview URL, and processing/error flags; the in-flight upload lives in a ref.
 // An effect creates the preview object URL and revokes it on change or unmount.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { uploadPhoto } from '@/api/upload'
-import { resizeToWebp, validateImage } from '@/lib/image'
+import { compressImage, validateImage } from '@/lib/image'
 
 export function useImageUpload() {
   const [blob, setBlob] = useState<Blob | null>(null)
@@ -45,7 +45,7 @@ export function useImageUpload() {
       setError(null)
       setProcessing(true)
       try {
-        const resized = await resizeToWebp(file)
+        const resized = await compressImage(file)
         setBlob(resized)
         startUpload(resized)
       } catch (err) {

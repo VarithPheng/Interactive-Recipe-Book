@@ -35,7 +35,7 @@ A public recipe book built with React for a university frontend course. Anyone c
 | F8  | Add a recipe with inline validation, success toast and redirect                                           | Form             | ✅   |
 | F9  | Edit your own recipes (pre-filled form)                                                                   | Form             | ✅   |
 | F10 | Delete your own recipes after a confirmation dialog; starter recipes show a lock badge and no buttons     | Detail           | ✅   |
-| F11 | Photo upload: pick, preview, resize to WebP in the browser, upload to Cloudflare R2                       | Form             | ✅   |
+| F11 | Photo upload: pick any photo (phones included), preview, compress to JPEG in the browser, upload to Cloudflare R2 | Form             | ✅   |
 | F12 | Favorite heart on cards and detail page; Favorites page; saved across refreshes                           | Detail, Favorites | ✅  |
 | F13 | 1 to 5 star ratings, one per device; average and count on cards; your own rating remembered               | Detail, Browse   | ✅   |
 | F14 | "Copy link" puts the recipe's full URL on the clipboard                                                   | Detail           | ✅   |
@@ -95,7 +95,7 @@ flowchart LR
 | --------------------------- | -------------------------------------------------------------------------------------------------------- |
 | `useLocalStorage(key, initial)` | `useState` that reads from localStorage once and writes back in a `useEffect`; bad JSON falls back to `initial` |
 | `useDebounce(value, ms)`    | Returns the value only after it stops changing, used for search                                          |
-| `useImageUpload()`          | Validates, resizes to WebP, makes a preview URL (revoked in the effect cleanup) and uploads              |
+| `useImageUpload()`          | Validates, compresses to JPEG, makes a preview URL (revoked in the effect cleanup) and starts the upload as soon as a photo is picked |
 
 ### Security without login
 
@@ -104,7 +104,7 @@ There is no login, so the database enforces ownership itself:
 - The six starter recipes have `can_delete = false`. Row Level Security blocks updating or deleting them with the public key, even when calling the API directly.
 - Recipes added through the app have `can_delete = true` and can be edited or deleted.
 - Ratings can only be written through the `rate_recipe` function, one per device and recipe. The ratings table cannot be read or written directly.
-- The R2 keys stay on the server. The browser gets a presigned upload URL that accepts only WebP files under 2 MB and expires after 60 seconds.
+- The R2 keys stay on the server. The browser gets a presigned upload URL that is signed for one JPEG of the exact size (2 MB at most) and expires after 60 seconds. Compressing in the browser also removes photo metadata such as location.
 
 ## Project structure
 

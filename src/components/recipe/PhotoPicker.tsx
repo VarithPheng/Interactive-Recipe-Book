@@ -2,7 +2,6 @@
 import { useRef, type ChangeEvent } from 'react'
 import { ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ACCEPTED_TYPES } from '@/lib/image'
 
 type Props = {
   imageUrl: string | null
@@ -30,7 +29,7 @@ export function PhotoPicker({ imageUrl, processing, error, onSelect, onRemove }:
         ref={inputRef}
         id="photo"
         type="file"
-        accept={ACCEPTED_TYPES.join(',')}
+        accept="image/*"
         className="sr-only"
         aria-labelledby="photo-label"
         aria-describedby={error ? 'photo-error' : 'photo-hint'}
@@ -71,7 +70,7 @@ export function PhotoPicker({ imageUrl, processing, error, onSelect, onRemove }:
         </p>
       ) : (
         <p id="photo-hint" className="mt-1 text-xs text-muted-foreground">
-          JPEG, PNG or WebP, up to 5 MB. Large photos are resized.
+          Any photo up to 20 MB. It's resized and compressed before upload.
         </p>
       )}
     </div>
