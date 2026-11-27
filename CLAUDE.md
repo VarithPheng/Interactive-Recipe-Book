@@ -53,7 +53,7 @@ Course project, 100 points. Requirements:
 | `/recipes/:id` | `RecipeDetailPage` | Photo, ingredients with servings scaler, steps, rating, favorite, share, edit/delete |
 | `/recipes/new` and `/recipes/:id/edit` | `RecipeFormPage` | One form component, create and edit modes |
 | `/favorites` | `FavoritesPage` | Recipes favorited on this device |
-| `/shopping-list` | `ShoppingListPage` | Ingredients added from recipes, merged; tick off, remove (with undo), copy as text |
+| `/shopping-list` | `ShoppingListPage` | Ingredients added from recipes, merged; select, remove (with undo), copy as text |
 | `/about` | `AboutPage` | Project info, team, repo link |
 | `*` | `NotFoundPage` | Not-found state |
 
@@ -80,7 +80,7 @@ All pages render inside a `Layout` (navbar with links, mobile menu, `<Outlet/>`)
 | F15 | ~~Dark mode~~ | n/a | Removed by user decision (light theme only). Numbering kept so other IDs stay stable. |
 | F16 | Responsive layout | All | Usable at 375, 768 and 1280 px; grid is 1/2/3/4 columns |
 | F17 | Loading, error and empty states, toasts | All | Skeletons while loading, error with retry, friendly empty states |
-| F18 | Shopping list | Detail, Shopping list | "Add to shopping list" adds ingredients scaled to the chosen servings; same name and unit merge (quantities summed); tick, remove with undo, remove ticked, clear, copy; persists in localStorage |
+| F18 | Shopping list | Detail, Shopping list | "Add to shopping list" adds ingredients scaled to the chosen servings; same name and unit merge (quantities summed); select, remove with undo, remove selected, clear, copy; persists in localStorage |
 
 Form validation rules (`react-hook-form` rules, inline messages):
 

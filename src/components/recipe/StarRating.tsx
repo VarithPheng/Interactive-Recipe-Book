@@ -5,12 +5,13 @@ import { cn } from '@/lib/utils'
 
 type Props = {
   value: number | undefined
+  error?: string | null
   onRate: (score: number) => void
 }
 
 const LABELS = ['Poor', 'Fair', 'Good', 'Very good', 'Excellent']
 
-export function StarRating({ value, onRate }: Props) {
+export function StarRating({ value, error, onRate }: Props) {
   const [hover, setHover] = useState<number | null>(null)
   const shown = hover ?? value ?? 0
 
@@ -36,8 +37,8 @@ export function StarRating({ value, onRate }: Props) {
           </button>
         ))}
       </div>
-      <p className="mt-1 h-5 text-sm text-muted-foreground" aria-live="polite">
-        {hover ? LABELS[hover - 1] : value ? `You rated this ${value} out of 5` : 'Tap a star to rate'}
+      <p className={cn('mt-1 h-5 text-sm', error ? 'text-destructive' : 'text-muted-foreground')} aria-live="polite">
+        {hover ? LABELS[hover - 1] : error ? error : value ? `You rated this ${value} out of 5` : 'Tap a star to rate'}
       </p>
     </div>
   )

@@ -50,12 +50,13 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
   const { rate, myRating } = useRecipes()
   const baseServings = recipe.servings ?? 1
   const [servings, setServings] = useState(baseServings)
+  const [rateError, setRateError] = useState<string | null>(null)
   const factor = servings / baseServings
   const time = formatMinutes(recipe.prepMinutes)
 
   return (
     <article>
-      <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+      <Link to="/" className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeftIcon className="size-4" aria-hidden="true" />
         All recipes
       </Link>
@@ -87,7 +88,22 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
             <h2 id="rate-heading" className="text-sm font-medium">
               Rate this recipe
             </h2>
-            <StarRating value={myRating(recipe.id)} onRate={(score) => rate(recipe.id, score)} />
+            <StarRating
+              value={myRating(recipe.id)}
+              error={rateError}
+              onRate={async (score) =>
+                setRateError((await rate(recipe.id, score)) ? null : 'Your rating could not be saved. Try again.')
+              }
+            />
+          </section>
+          <section aria-labelledby="list-heading" className="border-t border-border pt-4">
+            <h2 id="list-heading" className="text-sm font-medium">
+              Shopping list
+            </h2>
+            <p className="mt-1 mb-3 text-sm text-muted-foreground">
+              Adds the ingredients for {servings} {servings === 1 ? 'serving' : 'servings'}.
+            </p>
+            <AddToListButton recipe={recipe} servings={servings} factor={factor} />
           </section>
         </div>
       </div>
@@ -108,9 +124,6 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
               </li>
             ))}
           </ul>
-          <div className="mt-4">
-            <AddToListButton recipe={recipe} servings={servings} factor={factor} />
-          </div>
         </section>
 
         <section aria-labelledby="steps-heading">

@@ -1,4 +1,4 @@
-// Shopping list built from recipes on the Detail page. Tick items off, remove them, or copy the list.
+// Shopping list built from recipes on the Detail page. Select items as you get them, remove them, or copy the list.
 // Removals can be undone from the toast. The summary (what's left to buy, copy text) is derived with useMemo.
 import { useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
@@ -76,12 +76,12 @@ export function ShoppingListPage() {
               disabled={summary.checkedCount === 0}
               onClick={() =>
                 removeWithUndo(
-                  `Removed ${summary.checkedCount} ticked ${summary.checkedCount === 1 ? 'item' : 'items'}`,
+                  `Removed ${summary.checkedCount} selected ${summary.checkedCount === 1 ? 'item' : 'items'}`,
                   clearChecked,
                 )
               }
             >
-              Remove ticked
+              Remove selected
             </Button>
             <Button variant="ghost" onClick={() => removeWithUndo('Shopping list cleared', clearAll)}>
               Clear list
@@ -90,8 +90,8 @@ export function ShoppingListPage() {
 
           <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
             {summary.toBuyCount === 0
-              ? 'Everything is ticked off.'
-              : `${summary.toBuyCount} to buy${summary.checkedCount ? `, ${summary.checkedCount} ticked` : ''}`}
+              ? 'All items selected.'
+              : `${summary.toBuyCount} to buy${summary.checkedCount ? `, ${summary.checkedCount} selected` : ''}`}
           </p>
 
           <ul className="mt-2 divide-y divide-border border-y border-border">
