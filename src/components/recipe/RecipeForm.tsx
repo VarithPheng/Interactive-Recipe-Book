@@ -1,6 +1,6 @@
 // Recipe form shared by create and edit. react-hook-form handles state and validation;
 // useFieldArray manages the ingredient and step rows; useImageUpload handles the photo.
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Loader2Icon, PlusIcon, Trash2Icon } from 'lucide-react'
@@ -58,8 +58,8 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
     register,
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ defaultValues: toDefaults(initial), mode: 'onTouched' })
+    formState: { errors, isSubmitting, submitCount },
+  } = useForm<FormValues>({ defaultValues: toDefaults(initial), mode: 'onTouched', shouldFocusError: false })
   const photo = useImageUpload()
   // The photo already saved on the recipe (edit mode); null once removed.
   const [existingPhoto, setExistingPhoto] = useState<string | null>(initial?.photoUrl ?? null)
@@ -99,124 +99,136 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
     })
   }
 
+  // After each submit, focus the first invalid field in page order. The library's own focus order
+  // puts ingredient rows before Title, so it is turned off. Runs after React has marked the fields invalid.
+  const formRef = useRef<HTMLFormElement>(null)
+  useEffect(() => {
+    if (submitCount > 0) formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+  }, [submitCount])
+
   return (
-    <form onSubmit={handleSubmit(submit)} noValidate className="max-w-3xl space-y-10">
+    <form ref={formRef} onSubmit={handleSubmit(submit)} noValidate className="space-y-10">
       <fieldset className="space-y-5">
         <legend className="sr-only">Basics</legend>
 
-        <div>
-          <label htmlFor="title" className={labelClass}>
-            Title
-          </label>
-          <Input
-            id="title"
-            aria-invalid={!!errors.title}
-            aria-describedby={errors.title ? 'title-error' : undefined}
-            {...register('title', {
-              required: 'Give the recipe a title',
-              validate: (v) => {
-                const n = v.trim().length
-                return (n >= 2 && n <= 80) || 'Use 2 to 80 characters'
-              },
-            })}
-          />
-          <FieldError id="title-error" message={errors.title?.message} />
-        </div>
-
-        <div>
-          <label htmlFor="description" className={labelClass}>
-            Description <span className="font-normal text-muted-foreground">(optional)</span>
-          </label>
-          <Textarea id="description" rows={2} {...register('description')} />
-        </div>
-
-        <PhotoPicker
-          imageUrl={photo.previewUrl ?? existingPhoto}
-          processing={photo.processing}
-          error={photo.error}
-          onSelect={photo.select}
-          onRemove={() => {
-            photo.clear()
-            setExistingPhoto(null)
-          }}
-        />
-
-        <div className="grid gap-5 sm:grid-cols-3">
-          <div>
-            <label htmlFor="category" className={labelClass}>
-              Category
-            </label>
-            <Controller
-              control={control}
-              name="category"
-              rules={{ validate: (v) => (CATEGORIES as readonly string[]).includes(v) || 'Choose a category' }}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger
-                    id="category"
-                    ref={field.ref}
-                    onBlur={field.onBlur}
-                    className="w-full"
-                    aria-invalid={!!errors.category}
-                    aria-describedby={errors.category ? 'category-error' : undefined}
-                  >
-                    <SelectValue placeholder="Choose one" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            <FieldError id="category-error" message={errors.category?.message} />
-          </div>
-
-          <div>
-            <label htmlFor="prepMinutes" className={labelClass}>
-              Prep time (minutes)
+        {/* Desktop: title, description and details on the left, the photo beside them; the description fills the spare height so both columns end level. Phones: one column. */}
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-[auto_1fr_auto] lg:items-start lg:gap-x-8">
+          <div className="lg:col-start-1">
+            <label htmlFor="title" className={labelClass}>
+              Title
             </label>
             <Input
-              id="prepMinutes"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={1440}
-              aria-invalid={!!errors.prepMinutes}
-              aria-describedby={errors.prepMinutes ? 'prep-error' : undefined}
-              {...register('prepMinutes', {
-                valueAsNumber: true,
-                validate: (v) => (Number.isNaN(v) ? 'Enter the prep time' : isInt(v)),
-                min: { value: 1, message: 'At least 1 minute' },
-                max: { value: 1440, message: 'At most 1440 minutes (24 hours)' },
+              id="title"
+              aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? 'title-error' : undefined}
+              {...register('title', {
+                required: 'Give the recipe a title',
+                validate: (v) => {
+                  const n = v.trim().length
+                  return (n >= 2 && n <= 80) || 'Use 2 to 80 characters'
+                },
               })}
             />
-            <FieldError id="prep-error" message={errors.prepMinutes?.message} />
+            <FieldError id="title-error" message={errors.title?.message} />
           </div>
 
-          <div>
-            <label htmlFor="servings" className={labelClass}>
-              Servings
+          <div className="lg:col-start-1 lg:flex lg:flex-col lg:self-stretch">
+            <label htmlFor="description" className={labelClass}>
+              Description <span className="font-normal text-muted-foreground">(optional)</span>
             </label>
-            <Input
-              id="servings"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={100}
-              aria-invalid={!!errors.servings}
-              aria-describedby={errors.servings ? 'servings-error' : undefined}
-              {...register('servings', {
-                valueAsNumber: true,
-                validate: (v) => (Number.isNaN(v) ? 'Enter the number of servings' : isInt(v)),
-                min: { value: 1, message: 'At least 1' },
-                max: { value: 100, message: 'At most 100' },
-              })}
+            <Textarea id="description" rows={2} className="lg:flex-1" {...register('description')} />
+          </div>
+
+          <div className="lg:col-start-2 lg:row-span-3 lg:row-start-1">
+            <PhotoPicker
+              imageUrl={photo.previewUrl ?? existingPhoto}
+              processing={photo.processing}
+              error={photo.error}
+              onSelect={photo.select}
+              onRemove={() => {
+                photo.clear()
+                setExistingPhoto(null)
+              }}
             />
-            <FieldError id="servings-error" message={errors.servings?.message} />
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-3 lg:col-start-1">
+            <div>
+              <label htmlFor="category" className={labelClass}>
+                Category
+              </label>
+              <Controller
+                control={control}
+                name="category"
+                rules={{ validate: (v) => (CATEGORIES as readonly string[]).includes(v) || 'Choose a category' }}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger
+                      id="category"
+                      ref={field.ref}
+                      onBlur={field.onBlur}
+                      className="w-full"
+                      aria-invalid={!!errors.category}
+                      aria-describedby={errors.category ? 'category-error' : undefined}
+                    >
+                      <SelectValue placeholder="Choose one" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <FieldError id="category-error" message={errors.category?.message} />
+            </div>
+
+            <div>
+              <label htmlFor="prepMinutes" className={labelClass}>
+                Prep time (minutes)
+              </label>
+              <Input
+                id="prepMinutes"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={1440}
+                aria-invalid={!!errors.prepMinutes}
+                aria-describedby={errors.prepMinutes ? 'prep-error' : undefined}
+                {...register('prepMinutes', {
+                  valueAsNumber: true,
+                  validate: (v) => (Number.isNaN(v) ? 'Enter the prep time' : isInt(v)),
+                  min: { value: 1, message: 'At least 1 minute' },
+                  max: { value: 1440, message: 'At most 1440 minutes (24 hours)' },
+                })}
+              />
+              <FieldError id="prep-error" message={errors.prepMinutes?.message} />
+            </div>
+
+            <div>
+              <label htmlFor="servings" className={labelClass}>
+                Servings
+              </label>
+              <Input
+                id="servings"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={100}
+                aria-invalid={!!errors.servings}
+                aria-describedby={errors.servings ? 'servings-error' : undefined}
+                {...register('servings', {
+                  valueAsNumber: true,
+                  validate: (v) => (Number.isNaN(v) ? 'Enter the number of servings' : isInt(v)),
+                  min: { value: 1, message: 'At least 1' },
+                  max: { value: 100, message: 'At most 100' },
+                })}
+              />
+              <FieldError id="servings-error" message={errors.servings?.message} />
+            </div>
           </div>
         </div>
       </fieldset>

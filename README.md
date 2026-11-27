@@ -42,7 +42,7 @@ A public recipe book built with React for a university frontend course. Anyone c
 | F15 | ~~Dark mode~~: removed by team decision; the app uses one light theme                                     | n/a              | ➖   |
 | F16 | Responsive layout: 1, 2, 3 or 4 columns; tested at 375, 768 and 1280 px                                   | All              | ✅   |
 | F17 | Skeleton loading states matched to each page, error panel with retry, empty states, toasts                | All              | ✅   |
-| F18 | Shopping list: add a recipe's ingredients at the chosen servings; same ingredients merge; tick, remove (with undo), copy as text | Detail, Shopping list | ✅ |
+| F18 | Shopping list: add a recipe's ingredients at the chosen servings; same ingredients merge; select, remove (with undo), copy as text | Detail, Shopping list | ✅ |
 
 Pages: Browse (`/`), Recipe detail (`/recipes/:id`), Add and edit (`/recipes/new`, `/recipes/:id/edit`), Favorites (`/favorites`), Shopping list (`/shopping-list`), About (`/about`), and a not-found page for any other URL.
 
@@ -85,7 +85,7 @@ flowchart LR
 | ------------------ | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `RecipesContext`   | All recipes, loading/error status (`useReducer`), and this device's own ratings                    | Browse, Detail, Form and Favorites all read the same list, so it is fetched once |
 | `FavoritesContext` | The ids of favorite recipes, saved in localStorage and kept in sync across open tabs               | The heart appears on cards, the detail page and the Favorites page               |
-| `ShoppingListContext` | Shopping list lines (merged by ingredient name and unit, with a ticked flag), saved in localStorage | The Detail page adds to it; the Shopping list page reads and edits it |
+| `ShoppingListContext` | Shopping list lines (merged by ingredient name and unit, with a selected flag), saved in localStorage | The Detail page adds to it; the Shopping list page reads and edits it |
 
 `RecipesContext` loads recipes in a `useEffect` and exposes `reload()` for the retry button. Creating and editing wait for the server. Deleting and rating update the screen straight away and roll back with an error toast if the server refuses. Filtering and sorting happen in the browser with `useMemo`. The filters are read from the URL (`useSearchParams`), so they survive Back, refresh and sharing.
 

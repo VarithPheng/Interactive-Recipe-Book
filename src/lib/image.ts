@@ -5,6 +5,9 @@ export const MAX_INPUT_BYTES = 20 * 1024 * 1024
 export const MAX_UPLOAD_BYTES = 2_000_000
 const MAX_SIDE = 1600
 
+// Shown under the photo field; the form skeleton prints the same text so it wraps the same way.
+export const PHOTO_HINT = "Any photo up to 20 MB. It's resized and compressed before upload."
+
 export function validateImage(file: File): string | null {
   if (file.type && !file.type.startsWith('image/')) return 'Choose a photo file.'
   if (file.size > MAX_INPUT_BYTES) return 'Choose a photo of 20 MB or less.'

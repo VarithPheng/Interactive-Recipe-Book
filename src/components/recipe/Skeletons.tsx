@@ -1,6 +1,7 @@
 // Loading placeholders that copy each page's real layout, so nothing shifts when content arrives.
 // Used both while a page's code downloads (Suspense) and while its data loads.
 import { Skeleton } from '@/components/ui/skeleton'
+import { PHOTO_HINT } from '@/lib/image'
 
 export const GRID_CLASSES = 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
 
@@ -55,16 +56,27 @@ export function DetailSkeleton() {
         <div className="flex flex-col gap-4">
           <Skeleton className="h-5 w-40" />
           <Skeleton className="h-11 w-3/4" />
-          <Skeleton className="h-7 w-full" />
+          {/* Description: usually two lines on a phone, one beside the photo on desktop. */}
+          <div>
+            <Skeleton className="h-7 w-full" />
+            <Skeleton className="mt-0 h-7 w-2/3 sm:hidden" />
+          </div>
           <Skeleton className="h-5 w-40" />
           <div className="flex gap-2">
             <Skeleton className="h-8 w-20" />
             <Skeleton className="h-8 w-28" />
           </div>
-          <div className="space-y-2 border-t border-border pt-4">
+          {/* Rating: heading, stars, status line. */}
+          <div className="border-t border-border pt-4">
             <Skeleton className="h-5 w-28" />
             <Skeleton className="h-9 w-44" />
-            <Skeleton className="h-5 w-32" />
+            <Skeleton className="mt-1 h-5 w-32" />
+          </div>
+          {/* Shopping list: heading, one line of text, button. */}
+          <div className="border-t border-border pt-4">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="mt-1 mb-3 h-5 w-52" />
+            <Skeleton className="h-8 w-44" />
           </div>
         </div>
       </div>
@@ -117,25 +129,34 @@ export function FormSkeleton({ title }: { title?: string }) {
     <section aria-busy="true" aria-label="Loading form">
       <Skeleton className="h-5 w-24" />
       {title ? <h1 className={`mt-4 mb-8 ${heading}`}>{title}</h1> : <Skeleton className="mt-4 mb-8 h-9 w-48" />}
-      <div className="max-w-3xl space-y-10">
+      <div className="space-y-10">
         <div className="space-y-5">
-          <FieldSkeleton />
-          <FieldSkeleton tall />
-          <div>
-            <Skeleton className="mb-1 h-5 w-28" />
-            <Skeleton className="aspect-[4/3] w-full rounded-lg sm:max-w-xs" />
-            <Skeleton className="mt-1 h-4 w-64" />
-          </div>
-          <div className="grid gap-5 sm:grid-cols-3">
-            <FieldSkeleton />
-            <FieldSkeleton />
-            <FieldSkeleton />
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-[auto_1fr_auto] lg:items-start lg:gap-x-8">
+            <div className="lg:col-start-1">
+              <FieldSkeleton />
+            </div>
+            <div className="lg:col-start-1 lg:flex lg:flex-col lg:self-stretch">
+              <Skeleton className="mb-1 h-5 w-24" />
+              <Skeleton className="h-16 w-full lg:flex-1" />
+            </div>
+            <div className="lg:col-start-2 lg:row-span-3 lg:row-start-1">
+              <Skeleton className="mb-1 h-5 w-28" />
+              <Skeleton className="aspect-[4/3] w-full rounded-lg sm:max-w-sm lg:max-w-none" />
+              <p className="mt-1 text-xs text-transparent select-none">{PHOTO_HINT}</p>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-3 lg:col-start-1">
+              <FieldSkeleton />
+              <FieldSkeleton />
+              <FieldSkeleton />
+            </div>
           </div>
         </div>
-        <div className="space-y-3">
+        {/* Ingredients: heading, column labels (from sm), one row, "Add ingredient". */}
+        <div>
           <Skeleton className="h-8 w-36" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-36" />
+          <Skeleton className="mt-1 hidden h-4 w-full sm:block" />
+          <Skeleton className="mt-2 h-[4.5rem] w-full sm:h-8" />
+          <Skeleton className="mt-3 h-8 w-36" />
         </div>
       </div>
     </section>

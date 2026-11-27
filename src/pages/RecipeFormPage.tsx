@@ -41,7 +41,7 @@ export function RecipeFormPage() {
   const back = (
     <Link
       to={isEdit && id ? `/recipes/${id}` : '/'}
-      className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
     >
       <ArrowLeftIcon className="size-4" aria-hidden="true" />
       {isEdit ? 'Back to recipe' : 'All recipes'}

@@ -1,7 +1,8 @@
-// Photo field for the recipe form: choose, preview, change or remove.
+// Photo field for the recipe form: choose, preview, change or remove (buttons always below the image).
 import { useRef, type ChangeEvent } from 'react'
 import { ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PHOTO_HINT } from '@/lib/image'
 
 type Props = {
   imageUrl: string | null
@@ -37,11 +38,11 @@ export function PhotoPicker({ imageUrl, processing, error, onSelect, onRemove }:
       />
 
       {imageUrl ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex flex-col items-start gap-3">
           <img
             src={imageUrl}
             alt="Selected recipe photo"
-            className="aspect-[4/3] w-full sm:max-w-xs rounded-lg bg-muted object-cover"
+            className="aspect-[4/3] w-full rounded-lg bg-muted object-cover sm:max-w-sm lg:max-w-none"
           />
           <div className="flex gap-2">
             <Button type="button" variant="outline" disabled={processing} onClick={() => inputRef.current?.click()}>
@@ -57,7 +58,7 @@ export function PhotoPicker({ imageUrl, processing, error, onSelect, onRemove }:
           type="button"
           disabled={processing}
           onClick={() => inputRef.current?.click()}
-          className="flex aspect-[4/3] w-full sm:max-w-xs flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-input text-sm text-muted-foreground outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+          className="flex aspect-[4/3] w-full flex-col sm:max-w-sm lg:max-w-none items-center justify-center gap-2 rounded-lg border border-dashed border-input text-sm text-muted-foreground outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
         >
           <ImageIcon className="size-6" aria-hidden="true" />
           {processing ? 'Preparing photo…' : 'Choose a photo'}
@@ -70,7 +71,7 @@ export function PhotoPicker({ imageUrl, processing, error, onSelect, onRemove }:
         </p>
       ) : (
         <p id="photo-hint" className="mt-1 text-xs text-muted-foreground">
-          Any photo up to 20 MB. It's resized and compressed before upload.
+          {PHOTO_HINT}
         </p>
       )}
     </div>
