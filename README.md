@@ -1,6 +1,6 @@
 # Recipe Book
 
-A public recipe book built with React for a university frontend course. Anyone can browse recipes, filter them by category or ingredient, scale ingredient amounts to the number of servings, rate recipes, save favorites on their device, and add their own recipes with a photo.
+A public recipe book built with React for a university frontend course. Anyone can browse recipes, filter them by category or ingredient, scale ingredient amounts to the number of servings, rate recipes, save favorites on their device, build a shopping list from recipes, and add their own recipes with a photo.
 
 - **Live site:** https://interactive-recipe-book-five.vercel.app
 - **Repository:** https://github.com/VarithPheng/Interactive-Recipe-Book
@@ -26,7 +26,7 @@ A public recipe book built with React for a university frontend course. Anyone c
 | #   | Feature                                                                                                   | Page             | Done |
 | --- | --------------------------------------------------------------------------------------------------------- | ---------------- | ---- |
 | F1  | Six starter recipes load on first visit                                                                   | Browse           | ✅   |
-| F2  | Title search that waits 300 ms after you stop typing (`useDebounce`)                                      | Browse           | ✅   |
+| F2  | Title search that waits 300 ms after you stop typing (`useDebounce`); filters are kept in the URL, so Back, refresh and shared links keep them | Browse | ✅ |
 | F3  | Category filter: All plus 7 categories                                                                    | Browse           | ✅   |
 | F4  | Ingredient filter: pick ingredients from a list; recipes must contain every one (include only)           | Browse           | ✅   |
 | F5  | Sort by newest, quickest or top rated                                                                     | Browse           | ✅   |
@@ -35,15 +35,16 @@ A public recipe book built with React for a university frontend course. Anyone c
 | F8  | Add a recipe with inline validation, success toast and redirect                                           | Form             | ✅   |
 | F9  | Edit your own recipes (pre-filled form)                                                                   | Form             | ✅   |
 | F10 | Delete your own recipes after a confirmation dialog; starter recipes show a lock badge and no buttons     | Detail           | ✅   |
-| F11 | Photo upload: pick, preview, resize to WebP in the browser, upload to Cloudflare R2                       | Form             | ✅   |
+| F11 | Photo upload: pick any photo (phones included), preview, compress to JPEG in the browser, upload to Cloudflare R2 | Form             | ✅   |
 | F12 | Favorite heart on cards and detail page; Favorites page; saved across refreshes                           | Detail, Favorites | ✅  |
 | F13 | 1 to 5 star ratings, one per device; average and count on cards; your own rating remembered               | Detail, Browse   | ✅   |
 | F14 | "Copy link" puts the recipe's full URL on the clipboard                                                   | Detail           | ✅   |
 | F15 | ~~Dark mode~~: removed by team decision; the app uses one light theme                                     | n/a              | ➖   |
 | F16 | Responsive layout: 1, 2, 3 or 4 columns; tested at 375, 768 and 1280 px                                   | All              | ✅   |
 | F17 | Skeleton loading states matched to each page, error panel with retry, empty states, toasts                | All              | ✅   |
+| F18 | Shopping list: add a recipe's ingredients at the chosen servings; same ingredients merge; tick, remove (with undo), copy as text | Detail, Shopping list | ✅ |
 
-Pages: Browse (`/`), Recipe detail (`/recipes/:id`), Add and edit (`/recipes/new`, `/recipes/:id/edit`), Favorites (`/favorites`), About (`/about`), and a not-found page for any other URL.
+Pages: Browse (`/`), Recipe detail (`/recipes/:id`), Add and edit (`/recipes/new`, `/recipes/:id/edit`), Favorites (`/favorites`), Shopping list (`/shopping-list`), About (`/about`), and a not-found page for any other URL.
 
 ## Tech stack
 
@@ -66,6 +67,8 @@ flowchart LR
   subgraph Browser
     Pages --> RecipesContext
     Pages --> FavoritesContext
+    Pages --> ShoppingListContext
+    ShoppingListContext --> LS
     RecipesContext --> API["src/api/*"]
     FavoritesContext --> LS[(localStorage)]
     RecipesContext --> LS
@@ -82,8 +85,9 @@ flowchart LR
 | ------------------ | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `RecipesContext`   | All recipes, loading/error status (`useReducer`), and this device's own ratings                    | Browse, Detail, Form and Favorites all read the same list, so it is fetched once |
 | `FavoritesContext` | The ids of favorite recipes, saved in localStorage and kept in sync across open tabs               | The heart appears on cards, the detail page and the Favorites page               |
+| `ShoppingListContext` | Shopping list lines (merged by ingredient name and unit, with a ticked flag), saved in localStorage | The Detail page adds to it; the Shopping list page reads and edits it |
 
-`RecipesContext` loads recipes in a `useEffect` and exposes `reload()` for the retry button. Creating and editing wait for the server. Deleting and rating update the screen straight away and roll back with an error toast if the server refuses. Filtering and sorting happen in the browser with `useMemo`, and the filter state stays local to the Browse page with `useState`.
+`RecipesContext` loads recipes in a `useEffect` and exposes `reload()` for the retry button. Creating and editing wait for the server. Deleting and rating update the screen straight away and roll back with an error toast if the server refuses. Filtering and sorting happen in the browser with `useMemo`. The filters are read from the URL (`useSearchParams`), so they survive Back, refresh and sharing.
 
 ### Custom hooks
 
@@ -91,7 +95,7 @@ flowchart LR
 | --------------------------- | -------------------------------------------------------------------------------------------------------- |
 | `useLocalStorage(key, initial)` | `useState` that reads from localStorage once and writes back in a `useEffect`; bad JSON falls back to `initial` |
 | `useDebounce(value, ms)`    | Returns the value only after it stops changing, used for search                                          |
-| `useImageUpload()`          | Validates, resizes to WebP, makes a preview URL (revoked in the effect cleanup) and uploads              |
+| `useImageUpload()`          | Validates, compresses to JPEG, makes a preview URL (revoked in the effect cleanup) and starts the upload as soon as a photo is picked |
 
 ### Security without login
 
@@ -100,7 +104,7 @@ There is no login, so the database enforces ownership itself:
 - The six starter recipes have `can_delete = false`. Row Level Security blocks updating or deleting them with the public key, even when calling the API directly.
 - Recipes added through the app have `can_delete = true` and can be edited or deleted.
 - Ratings can only be written through the `rate_recipe` function, one per device and recipe. The ratings table cannot be read or written directly.
-- The R2 keys stay on the server. The browser gets a presigned upload URL that accepts only WebP files under 2 MB and expires after 60 seconds.
+- The R2 keys stay on the server. The browser gets a presigned upload URL that is signed for one JPEG of the exact size (2 MB at most) and expires after 60 seconds. Compressing in the browser also removes photo metadata such as location.
 
 ## Project structure
 
@@ -109,13 +113,13 @@ api/upload.ts            Vercel function: presigned R2 upload URL
 supabase/                SQL: schema and policies, seed data, seed photo path update
 src/
   App.tsx, main.tsx      Routes and providers
-  pages/                 Browse, RecipeDetail, RecipeForm, Favorites, About, NotFound
+  pages/                 Browse, RecipeDetail, RecipeForm, Favorites, ShoppingList, About, NotFound
   components/layout/     Layout, Navbar
   components/recipe/     Card, grid, filters, form, photo picker, stars, skeletons, ...
   components/ui/         shadcn/ui components
-  context/               RecipesContext, FavoritesContext
+  context/               RecipesContext, FavoritesContext, ShoppingListContext
   hooks/                 useLocalStorage, useDebounce, useImageUpload
-  lib/                   types, filters, formatting, image resizing, Supabase client
+  lib/                   types, filters, formatting, image resizing, Supabase client, page loaders
   api/                   recipes, ratings, upload
 ```
 

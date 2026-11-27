@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { PlusIcon, Trash2Icon } from 'lucide-react'
+import { Loader2Icon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -76,11 +76,11 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
   })
 
   async function submit(v: FormValues) {
-    // Upload first so the recipe is saved with its final photo URL.
+    // The photo upload started when it was picked; wait for it so the recipe saves with its URL.
     let photoUrl = existingPhoto
     if (photo.hasNewPhoto) {
       try {
-        photoUrl = await photo.upload()
+        photoUrl = await photo.getUploadedUrl()
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'The photo could not be uploaded.')
         return
@@ -234,6 +234,7 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
         <ul className="mt-2 space-y-3">
           {ingredients.fields.map((field, i) => {
             const err = errors.ingredients?.[i]
+            const errId = `ingredient-${field.id}-error`
             return (
               <li key={field.id}>
                 <div className="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[1fr_6rem_7rem_2rem]">
@@ -242,6 +243,7 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
                     placeholder="e.g. Flour"
                     className="col-span-2 sm:col-span-1"
                     aria-invalid={!!err?.name}
+                    aria-describedby={err?.name ? errId : undefined}
                     {...register(`ingredients.${i}.name`, {
                       validate: (v, all) => {
                         const name = v.trim().toLowerCase()
@@ -260,6 +262,7 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
                       aria-label={`Ingredient ${i + 1} amount`}
                       placeholder="Amount"
                       aria-invalid={!!err?.qty}
+                      aria-describedby={err?.qty ? errId : undefined}
                       {...register(`ingredients.${i}.qty`, {
                         valueAsNumber: true,
                         validate: (v) => (!Number.isNaN(v) && v > 0) || 'Enter an amount above 0',
@@ -296,7 +299,7 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
                   </div>
                 </div>
                 {(err?.name || err?.qty) && (
-                  <p className="mt-1 text-sm text-destructive">
+                  <p id={errId} className="mt-1 text-sm text-destructive">
                     {[err.name?.message, err.qty?.message].filter(Boolean).join('. ')}
                   </p>
                 )}
@@ -321,6 +324,7 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
         <ol className="mt-3 space-y-3">
           {steps.fields.map((field, i) => {
             const err = errors.steps?.[i]?.text
+            const errId = `step-${field.id}-error`
             return (
               <li key={field.id}>
                 <div className="flex gap-2">
@@ -334,6 +338,7 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
                     rows={2}
                     aria-label={`Step ${i + 1}`}
                     aria-invalid={!!err}
+                    aria-describedby={err ? errId : undefined}
                     className="flex-1"
                     {...register(`steps.${i}.text`, {
                       validate: (v) => v.trim().length > 0 || 'Describe this step or remove it',
@@ -350,7 +355,11 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
                     <Trash2Icon />
                   </Button>
                 </div>
-                {err && <p className="mt-1 ml-10 text-sm text-destructive">{err.message}</p>}
+                {err && (
+                  <p id={errId} className="mt-1 ml-10 text-sm text-destructive">
+                    {err.message}
+                  </p>
+                )}
               </li>
             )
           })}
@@ -364,7 +373,8 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: Props) {
 
       <div className="flex gap-2 border-t border-border pt-6">
         <Button type="submit" size="lg" disabled={isSubmitting || photo.processing}>
-          {photo.uploading ? 'Uploading photo…' : isSubmitting ? 'Saving…' : submitLabel}
+          {isSubmitting && <Loader2Icon className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+          {isSubmitting ? 'Saving…' : submitLabel}
         </Button>
       </div>
     </form>

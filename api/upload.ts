@@ -1,4 +1,4 @@
-// Vercel function: returns a short-lived presigned PUT URL for one WebP photo in R2.
+// Vercel function: returns a short-lived presigned PUT URL for one JPEG photo in R2.
 // The browser uploads the file directly to R2; secrets never leave the server.
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
@@ -30,19 +30,20 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const { contentType, size } = body
-  if (contentType !== 'image/webp') {
-    return json({ error: 'Only image/webp uploads are accepted.' }, 400)
+  if (contentType !== 'image/jpeg') {
+    return json({ error: 'Only image/jpeg uploads are accepted.' }, 400)
   }
   if (typeof size !== 'number' || !Number.isFinite(size) || size <= 0 || size > MAX_BYTES) {
-    return json({ error: 'The photo must be 2 MB or smaller after resizing.' }, 400)
+    return json({ error: 'The photo must be 2 MB or smaller after compression.' }, 400)
   }
 
-  const key = `recipes/${crypto.randomUUID()}.webp`
+  const key = `recipes/${crypto.randomUUID()}.jpg`
   try {
     const uploadUrl = await getSignedUrl(
       s3,
-      new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, ContentType: 'image/webp' }),
-      { expiresIn: 60 },
+      // Type and exact size are signed, so R2 rejects any other file sent to this URL.
+      new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, ContentType: 'image/jpeg', ContentLength: size }),
+      { expiresIn: 60, signableHeaders: new Set(['content-type']) },
     )
     return json({ uploadUrl, publicUrl: `${R2_PUBLIC_URL.replace(/\/$/, '')}/${key}` })
   } catch {

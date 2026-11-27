@@ -1,9 +1,10 @@
-// One recipe: photo, ingredients scaled by servings, steps, favorite and share.
+// One recipe: photo, ingredients scaled by servings (and added to the shopping list), steps, favorite and share.
 // Own recipes get edit/delete; protected ones show only the lock badge. Anyone can rate once per device.
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeftIcon, ClockIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { AddToListButton } from '@/components/recipe/AddToListButton'
 import { FavoriteButton } from '@/components/recipe/FavoriteButton'
 import { LoadError } from '@/components/recipe/LoadError'
 import { RatingSummary } from '@/components/recipe/RatingSummary'
@@ -64,8 +65,10 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
 
         <div className="flex flex-col gap-4">
           <RecipeBadges recipe={recipe} />
-          <h1 className="font-heading text-4xl leading-tight font-semibold tracking-tight">{recipe.title}</h1>
-          {recipe.description && <p className="text-lg text-muted-foreground">{recipe.description}</p>}
+          <h1 className="font-heading text-4xl leading-tight font-semibold tracking-tight text-balance wrap-anywhere">
+            {recipe.title}
+          </h1>
+          {recipe.description && <p className="text-lg wrap-anywhere text-muted-foreground">{recipe.description}</p>}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
             {time && (
               <span className="inline-flex items-center gap-1">
@@ -101,10 +104,13 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
             {recipe.ingredients.map((ing) => (
               <li key={ing.name} className="flex gap-4 py-2.5">
                 <span className="w-24 shrink-0 font-medium tabular-nums">{formatAmount(ing, factor)}</span>
-                <span>{ing.name}</span>
+                <span className="min-w-0 wrap-anywhere">{ing.name}</span>
               </li>
             ))}
           </ul>
+          <div className="mt-4">
+            <AddToListButton recipe={recipe} servings={servings} factor={factor} />
+          </div>
         </section>
 
         <section aria-labelledby="steps-heading">
@@ -120,7 +126,7 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
                 >
                   {i + 1}
                 </span>
-                <p className="max-w-prose pt-0.5 leading-relaxed">{step}</p>
+                <p className="max-w-prose min-w-0 pt-0.5 leading-relaxed wrap-anywhere">{step}</p>
               </li>
             ))}
           </ol>

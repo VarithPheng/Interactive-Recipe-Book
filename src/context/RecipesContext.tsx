@@ -110,17 +110,22 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const update = useCallback(async (id: string, input: RecipeInput) => {
-    try {
-      const recipe = await updateRecipe(id, input)
-      dispatch({ type: 'updated', recipe })
-      toast.success('Recipe saved')
-      return recipe
-    } catch (err) {
-      toast.error(`Could not save the recipe. ${message(err)}`)
-      return null
-    }
-  }, [])
+  const update = useCallback(
+    async (id: string, input: RecipeInput) => {
+      try {
+        const saved = await updateRecipe(id, input)
+        const current = state.items.find((r) => r.id === id)
+        const recipe = { ...saved, avgRating: current?.avgRating ?? 0, ratingCount: current?.ratingCount ?? 0 }
+        dispatch({ type: 'updated', recipe })
+        toast.success('Recipe saved')
+        return recipe
+      } catch (err) {
+        toast.error(`Could not save the recipe. ${message(err)}`)
+        return null
+      }
+    },
+    [state.items],
+  )
 
   const remove = useCallback(
     async (id: string) => {

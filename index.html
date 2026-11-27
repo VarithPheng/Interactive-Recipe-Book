@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Open the connection to the database while the app's code is still downloading. -->
+    <link rel="preconnect" href="%VITE_SUPABASE_URL%" crossorigin />
     <!-- Start downloading the fonts with the HTML so text doesn't redraw when they arrive. -->
     <link
       rel="preload"

@@ -151,3 +151,13 @@ export function AboutSkeleton() {
     </section>
   )
 }
+
+// Shopping list is read from this device, so only its code can be loading: show the static heading.
+export function ShoppingListSkeleton() {
+  return (
+    <section>
+      <h1 className={heading}>Shopping list</h1>
+      <p className="mt-2 text-muted-foreground">Saved on this device. Add ingredients from any recipe page.</p>
+    </section>
+  )
+}
